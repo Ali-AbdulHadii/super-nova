@@ -4,6 +4,8 @@
 
 #include <algorithm>
 
+using Qt::StringLiterals::operator""_s;
+
 namespace caelestia::services {
 
 namespace {
@@ -21,6 +23,14 @@ QString stripFoundry(const QString& family) {
     }
 
     return family.left(idx).trimmed();
+}
+
+// fontconfig's generic aliases show up as families of their own. Picking one
+// means "whatever fontconfig resolves today", which is not a font choice.
+bool isGenericFamily(const QString& family) {
+    static const QStringList k_generics{ u"monospace"_s, u"sans serif"_s, u"sans-serif"_s, u"serif"_s, u"cursive"_s,
+        u"fantasy"_s, u"system-ui"_s, u"math"_s, u"emoji"_s };
+    return k_generics.contains(family.toLower());
 }
 
 // Emoji, powerline and dingbat fonts are in the database but are not text fonts,
@@ -70,7 +80,7 @@ void Fonts::populate() {
         }
 
         const auto name = stripFoundry(raw);
-        if (name.isEmpty() || m_families.contains(name)) {
+        if (name.isEmpty() || isGenericFamily(name) || m_families.contains(name)) {
             continue;
         }
 
