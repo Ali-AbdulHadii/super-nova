@@ -11,8 +11,28 @@ import qs.modules.nexus
 Singleton {
     id: root
 
+    // The open Nexus window, if any. QML nulls this when the window destroys itself.
+    property FloatingWindow window: null
+
+    // Apocrypha: open Nexus at most once. Every caller (Super+I, the IPC call, the
+    // utilities toggle, the drawer's pop-out button) focuses the existing window
+    // instead of stacking another copy.
     function create(parent: Item, props: var): void {
-        nexusComp.createObject(parent ?? dummy, props);
+        if (window) {
+            focusWindow();
+            return;
+        }
+        window = nexusComp.createObject(parent ?? dummy, props);
+    }
+
+    function focusWindow(): void {
+        // Matched by title: the file dialog is the shell's only other floating
+        // window and never carries Nexus's title.
+        const toplevel = Hypr.toplevels.values.find(t => t.title === window.title);
+        if (!toplevel)
+            return;
+        const address = `0x${toplevel.address}`;
+        Hypr.dispatch(Hypr.usingLua ? `hl.dsp.focus({ window = "address:${address}" })` : `focuswindow address:${address}`);
     }
 
     QtObject {
