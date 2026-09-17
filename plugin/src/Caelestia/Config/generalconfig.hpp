@@ -102,7 +102,10 @@ class GeneralBattery : public settings::ObjectNode {
 class GeneralConfig : public settings::ObjectNode {
     CONFIG_NODE(GeneralConfig, settings::ObjectNode)
 
-    CONFIG_GLOBAL_PROPERTY(QString, logo, {})
+    // Apocrypha: show the built-in mark by default instead of the distro logo.
+    // "caelestia" is the internal name for the built-in mark; set a distro icon
+    // name or file path in shell.json to override.
+    CONFIG_GLOBAL_PROPERTY(QString, logo, u"caelestia"_s)
     CONFIG_GLOBAL_PROPERTY(QString, language, {})
     CONFIG_PROPERTY(bool, showOverFullscreen, false)
     CONFIG_PROPERTY(qreal, mediaGifSpeedAdjustment, 300)

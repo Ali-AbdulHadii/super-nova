@@ -30,8 +30,8 @@ Item {
         id: caelestiaLogo
 
         Logo {
-            implicitWidth: Math.round(Tokens.font.body.large.pointSize * 1.6)
-            implicitHeight: Math.round(Tokens.font.body.large.pointSize * 1.6)
+            implicitWidth: Math.round(Tokens.font.body.large.pointSize * 1.25)
+            implicitHeight: Math.round(Tokens.font.body.large.pointSize * 1.25)
         }
     }
 
