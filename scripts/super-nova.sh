@@ -17,7 +17,7 @@
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-BUILD="$REPO/build-install"
+BUILD="$REPO/build/install"
 QSCONF="$HOME/.config/quickshell/caelestia"
 QMLDIR="$HOME/.local/lib/qt6/qml"
 LIBDIR="$HOME/.local/lib/caelestia"
