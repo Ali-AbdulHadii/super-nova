@@ -20,7 +20,9 @@ qml_module(caelestia-services
         networkusage.cpp
         hyprdevices.cpp
         hyprextras.cpp
+        fonts.cpp
     LIBRARIES
+        Qt::Gui
         Qt::Concurrent
         Qt::DBus
         Qt::Network

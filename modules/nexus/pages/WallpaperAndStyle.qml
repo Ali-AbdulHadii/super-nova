@@ -169,6 +169,18 @@ PageBase {
                 verticalPadding: Tokens.padding.medium
                 onClicked: root.nState.openSubPage(3) // Colours page
             }
+
+            IconTextButton {
+                icon: "font_download"
+                text: Tr.tr("Fonts")
+                font: Tokens.font.body.large
+                isRound: true
+                shapeMorph: true
+                type: IconTextButton.Tonal
+                horizontalPadding: Tokens.padding.extraLarge
+                verticalPadding: Tokens.padding.medium
+                onClicked: root.nState.openSubPage(4) // Fonts page
+            }
         }
 
         ToggleRow {
