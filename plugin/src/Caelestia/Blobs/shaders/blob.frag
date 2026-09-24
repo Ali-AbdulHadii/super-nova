@@ -272,11 +272,51 @@ void main() {
         // rg = outward normal (0.5-biased), b = depth inside the edge over 64px.
         // Every shape covering a pixel computes the same values from the merged SDF,
         // so blend-zone overdraw stays invisible exactly as it does for the flat colour.
-        float depth = clamp(-mergedSdf / 64.0, 0.0, 1.0);
+        float glassDepth = -mergedSdf;
 
-        // The SDF is smooth, so screen-space derivatives give the normal without a
-        // second evaluation
-        vec2 grad = vec2(dFdx(mergedSdf), dFdy(mergedSdf));
+        // Where a panel is attached to the screen border, the panel's edge and the
+        // border's inner edge lie on the same line, so the merged SDF is shallow along
+        // it and the glass would light and lens a seam straight through the panel.
+        // The glass is really the border minus the uncovered part of the hole, so
+        // measure depth against that instead, with attached panels extended into the
+        // border so their shared edge disappears. Free edges keep the merged SDF.
+        if (hasInverted != 0) {
+            const float kExtend = 64.0; // past the depth range, so the join reads as deep
+            float innerTop = invertedInner.y - invertedInner.w;
+            float innerBot = invertedInner.y + invertedInner.w;
+            float innerLeft = invertedInner.x - invertedInner.z;
+            float innerRight = invertedInner.x + invertedInner.z;
+
+            float uncovered = sdRoundedBox(pixel, invertedInner.xy, invertedInner.zw, invertedRadius);
+            for (int i = 0; i < rectCount; i++) {
+                vec4 rect = rectData[i * 5];
+                vec4 props = rectData[i * 5 + 1];
+                vec4 invDm = rectData[i * 5 + 2];
+                vec2 sh = rectData[i * 5 + 3].xy;
+                vec4 radii = rectData[i * 5 + 4];
+                vec2 center = rect.xy + props.yz;
+
+                // 1 on each side that touches (or tucks into) the border
+                float touchT = 1.0 - smoothstep(0.0, smoothFactor, (center.y - sh.y) - innerTop);
+                float touchB = 1.0 - smoothstep(0.0, smoothFactor, innerBot - (center.y + sh.y));
+                float touchL = 1.0 - smoothstep(0.0, smoothFactor, (center.x - sh.x) - innerLeft);
+                float touchR = 1.0 - smoothstep(0.0, smoothFactor, innerRight - (center.x + sh.x));
+
+                vec2 grow = vec2(touchL + touchR, touchT + touchB) * (kExtend * 0.5);
+                vec2 c = center + vec2(touchR - touchL, touchB - touchT) * (kExtend * 0.5);
+                vec2 tp = c + mat2(invDm.xy, invDm.zw) * (pixel - c);
+                float d = sdRoundedBox4(tp, c, rect.zw + grow, radii) * max(props.w, 0.01);
+
+                uncovered = max(uncovered, -d);
+            }
+            glassDepth = max(glassDepth, uncovered);
+        }
+
+        float depth = clamp(glassDepth / 64.0, 0.0, 1.0);
+
+        // The depth field is smooth wherever it matters (near edges), so screen-space
+        // derivatives give the normal without a second evaluation
+        vec2 grad = -vec2(dFdx(glassDepth), dFdy(glassDepth));
         vec2 n = grad / max(length(grad), 1e-4);
 
         fragColor = vec4(vec3(n * 0.5 + 0.5, depth) * alpha, alpha) * qt_Opacity;

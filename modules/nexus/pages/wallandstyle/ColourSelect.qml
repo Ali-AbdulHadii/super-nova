@@ -284,7 +284,12 @@ PageBase {
             last: !Colours.glass.enabled
             label: Tr.tr("Style")
             subtext: root.styleSubtext
-            menuOnTop: true
+            // Four styles don't fit above the row once it scrolls near the top, so the
+            // menu opens towards whichever side of the page has more room
+            menuOnTop: {
+                root.flickable.contentY; // re-evaluate on scroll
+                return styleRow.mapToItem(root.flickable, 0, 0).y > root.flickable.height / 2;
+            }
             menuItems: [root.standardItem, root.glassItem, root.realisticItem, root.appleItem]
             onSelected: item => {
                 const glass = GlobalConfig.appearance.glass;
@@ -364,7 +369,7 @@ PageBase {
             last: true
             text: Tr.tr("Transparency")
             // TRANSLATORS: %1/%2 = opacity values from 0 to 1 for the base surface and layered surfaces
-            subtext: Colours.glass.enabled ? Tr.tr("Included in Liquid Glass") : Tr.tr("Base %1, layers %2").arg(Colours.transparency.base).arg(Colours.transparency.layers)
+            subtext: Colours.glass.enabled ? Tr.tr("Included in the glass styles") : Tr.tr("Base %1, layers %2").arg(Colours.transparency.base).arg(Colours.transparency.layers)
             checked: Colours.transparency.enabled
             disabled: Colours.glass.enabled
             onToggled: GlobalConfig.appearance.transparency.enabled = checked
