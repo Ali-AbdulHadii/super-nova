@@ -55,7 +55,11 @@ PageBase {
         text: Tr.tr("Liquid Glass")
         icon: "water_drop"
     }
-    readonly property MenuItem styleActive: Colours.glass.enabled ? glassItem : standardItem
+    readonly property MenuItem realisticItem: MenuItem {
+        text: Tr.tr("Realistic glass")
+        icon: "lens_blur"
+    }
+    readonly property MenuItem styleActive: Colours.glass.realistic ? realisticItem : (Colours.glass.enabled ? glassItem : standardItem)
 
     function schemeLabel(name: string): string {
         if (name === "dynamic")
@@ -261,13 +265,17 @@ PageBase {
             first: true
             last: !Colours.glass.enabled
             label: Tr.tr("Style")
-            subtext: Tr.tr("How the bar and panels are drawn")
+            subtext: Colours.glass.realistic ? Tr.tr("Bends the wallpaper; panels don't show windows behind them") : Tr.tr("How the bar and panels are drawn")
             menuOnTop: true
-            menuItems: [root.standardItem, root.glassItem]
+            menuItems: [root.standardItem, root.glassItem, root.realisticItem]
             onSelected: item => {
-                const glass = item === root.glassItem;
-                if (glass !== GlobalConfig.appearance.glass.enabled)
-                    GlobalConfig.appearance.glass.enabled = glass;
+                const glass = GlobalConfig.appearance.glass;
+                const enabled = item !== root.standardItem;
+                const realistic = item === root.realisticItem;
+                if (enabled !== glass.enabled)
+                    glass.enabled = enabled;
+                if (realistic !== glass.realistic)
+                    glass.realistic = realistic;
             }
         }
 
@@ -286,7 +294,7 @@ PageBase {
 
         SliderRow {
             visible: Colours.glass.enabled
-            last: true
+            last: !Colours.glass.realistic
             icon: "flare"
             label: Tr.tr("Highlight")
             valueLabel: Strings.percentOne(value)
@@ -295,6 +303,33 @@ PageBase {
                 const highlight = Math.max(0, Math.min(1, v));
                 if (highlight !== GlobalConfig.appearance.glass.highlight)
                     GlobalConfig.appearance.glass.highlight = highlight;
+            }
+        }
+
+        SliderRow {
+            visible: Colours.glass.realistic
+            icon: "lens"
+            label: Tr.tr("Refraction")
+            valueLabel: Strings.percentOne(value)
+            value: Colours.glass.refraction
+            onMoved: v => {
+                const refraction = Math.max(0, Math.min(1, v));
+                if (refraction !== GlobalConfig.appearance.glass.refraction)
+                    GlobalConfig.appearance.glass.refraction = refraction;
+            }
+        }
+
+        SliderRow {
+            visible: Colours.glass.realistic
+            last: true
+            icon: "gradient"
+            label: Tr.tr("Colour fringing")
+            valueLabel: Strings.percentOne(value)
+            value: Colours.glass.dispersion
+            onMoved: v => {
+                const dispersion = Math.max(0, Math.min(1, v));
+                if (dispersion !== GlobalConfig.appearance.glass.dispersion)
+                    GlobalConfig.appearance.glass.dispersion = dispersion;
             }
         }
 

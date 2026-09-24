@@ -19,7 +19,6 @@ layout(std140, binding = 0) uniform buf {
     int hasInverted;
     float invertedRadius;
     int glass;
-    float glassBezel;
     vec4 invertedOuter;
     vec4 invertedInner;
     vec4 rectData[80];

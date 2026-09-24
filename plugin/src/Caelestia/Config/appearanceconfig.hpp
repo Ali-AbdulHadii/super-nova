@@ -278,6 +278,11 @@ class AppearanceGlass : public settings::ObjectNode {
     CONFIG_GLOBAL_PROPERTY(bool, enabled, false)
     CONFIG_GLOBAL_PROPERTY(qreal, tint, 0.35)
     CONFIG_GLOBAL_PROPERTY(qreal, highlight, 0.85)
+    // Realistic glass draws its body from the wallpaper, with edge lensing and
+    // chromatic dispersion, instead of letting the compositor blur what is behind
+    CONFIG_GLOBAL_PROPERTY(bool, realistic, false)
+    CONFIG_GLOBAL_PROPERTY(qreal, refraction, 0.6)
+    CONFIG_GLOBAL_PROPERTY(qreal, dispersion, 0.5)
 };
 
 class AppearanceConfig : public settings::ObjectNode {

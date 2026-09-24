@@ -41,7 +41,6 @@ public:
     int m_hasInverted = 0;
     float m_invertedRadius = 0;
     int m_glass = 0;
-    float m_glassBezel = 14.0f;
     float m_invertedOuter[4] = {};
     float m_invertedInner[4] = {};
     BlobRectData m_rects[k_maxRects] = {};

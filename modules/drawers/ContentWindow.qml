@@ -173,6 +173,12 @@ StyledWindow {
                 lightMode: Colours.light ? 1 : 0
                 // Glass shadows are softer than the solid surface's
                 shadowColour: Qt.alpha(Colours.palette.m3shadow, Math.max(0, root.shadowOpacity * 0.5))
+                // This window and the wallpaper window both fill the screen from its origin,
+                // so the wallpaper lines up with the desktop pixel for pixel
+                realisticEnabled: Colours.glass.realistic && root.contentItem.Config.background.wallpaperEnabled
+                wallpaperPath: Wallpapers.current
+                refraction: Colours.glass.refraction
+                dispersion: Colours.glass.dispersion
             }
         }
 

@@ -16,10 +16,9 @@ class BlobGroup : public QObject {
     Q_PROPERTY(qreal smoothing READ smoothing WRITE setSmoothing NOTIFY smoothingChanged)
     Q_PROPERTY(QColor color READ color WRITE setColor NOTIFY colorChanged)
     Q_PROPERTY(bool cornerFill READ cornerFill WRITE setCornerFill NOTIFY cornerFillChanged)
-    // Glass mode: shapes output rim/bezel light data instead of a flat colour, for a
-    // post-pass (glass.frag) to composite. See blob.frag.
+    // Glass mode: shapes output edge geometry instead of a flat colour, for a
+    // post-pass (glass.frag) to light and lens. See blob.frag.
     Q_PROPERTY(bool glass READ glass WRITE setGlass NOTIFY glassChanged)
-    Q_PROPERTY(qreal glassBezel READ glassBezel WRITE setGlassBezel NOTIFY glassBezelChanged)
 
 public:
     explicit BlobGroup(QObject* parent = nullptr);
@@ -36,9 +35,6 @@ public:
 
     [[nodiscard]] bool glass() const;
     void setGlass(bool g);
-
-    [[nodiscard]] qreal glassBezel() const;
-    void setGlassBezel(qreal b);
 
     void addShape(BlobShape* shape);
     void removeShape(BlobShape* shape);
@@ -58,14 +54,12 @@ signals:
     void colorChanged();
     void cornerFillChanged();
     void glassChanged();
-    void glassBezelChanged();
 
 private:
     qreal m_smoothing = 32.0;
     QColor m_color{ 0x44, 0x88, 0xff };
     bool m_cornerFill = true;
     bool m_glass = false;
-    qreal m_glassBezel = 14.0;
     QList<BlobShape*> m_shapes;
     BlobInvertedRect* m_invertedRect = nullptr;
     bool m_physicsUpdated = false;

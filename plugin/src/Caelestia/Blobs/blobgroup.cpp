@@ -63,19 +63,6 @@ void BlobGroup::setGlass(bool g) {
     markDirty();
 }
 
-qreal BlobGroup::glassBezel() const {
-    return m_glassBezel;
-}
-
-void BlobGroup::setGlassBezel(qreal b) {
-    b = qMax(1.0, b); // The shader divides by it
-    if (qFuzzyCompare(m_glassBezel, b))
-        return;
-    m_glassBezel = b;
-    emit glassBezelChanged();
-    markDirty();
-}
-
 void BlobGroup::addShape(BlobShape* shape) {
     if (!shape || m_shapes.contains(shape))
         return;

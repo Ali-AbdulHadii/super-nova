@@ -137,13 +137,16 @@ Singleton {
     }
 
     function reloadHyprRules(): void {
+        // Realistic glass paints an opaque body from the wallpaper, so compositor blur
+        // behind it would be wasted work
+        const blurBehind = transparency.enabled && !glass.opaqueBody;
         let rule, trEnabled;
         if (Hypr.usingLua) {
             rule = `eval hl.layer_rule({ match = { namespace = "caelestia-drawers" }, %1 = %2 })`;
-            trEnabled = transparency.enabled;
+            trEnabled = blurBehind;
         } else {
             rule = "keyword layerrule %1 %2, match:namespace caelestia-drawers";
-            trEnabled = transparency.enabled ? 1 : 0;
+            trEnabled = blurBehind ? 1 : 0;
         }
         // Glass blurs only the tinted body: the soft shadow around it stays below the cutoff
         const ignoreAlpha = glass.enabled ? glass.tint - 0.05 : transparency.base - 0.03;
@@ -232,9 +235,15 @@ Singleton {
         readonly property bool enabled: Tokens.glass.enabled
         readonly property real tint: Math.max(0.1, Math.min(0.8, Tokens.glass.tint))
         readonly property real highlight: Math.max(0, Math.min(1, Tokens.glass.highlight))
+        readonly property bool realistic: enabled && Tokens.glass.realistic
+        readonly property real refraction: Math.max(0, Math.min(1, Tokens.glass.refraction))
+        readonly property real dispersion: Math.max(0, Math.min(1, Tokens.glass.dispersion))
+        // Realistic glass falls back to the see-through kind when there is no wallpaper
+        readonly property bool opaqueBody: realistic && GlobalConfig.background.wallpaperEnabled
 
         onEnabledChanged: root.requestReloadHyprRules()
         onTintChanged: root.requestReloadHyprRules()
+        onOpaqueBodyChanged: root.requestReloadHyprRules()
     }
 
     component Transparency: QtObject {
