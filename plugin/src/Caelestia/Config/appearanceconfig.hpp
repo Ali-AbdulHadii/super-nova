@@ -270,6 +270,16 @@ class AppearanceTransparency : public settings::ObjectNode {
     CONFIG_GLOBAL_PROPERTY(qreal, layers, 0.4)
 };
 
+// Liquid Glass surface style for the bar and drawers. The compositor blurs what is
+// behind; the shell draws the rim, the bezel light, the tint and the shadow.
+class AppearanceGlass : public settings::ObjectNode {
+    CONFIG_NODE(AppearanceGlass, settings::ObjectNode)
+
+    CONFIG_GLOBAL_PROPERTY(bool, enabled, false)
+    CONFIG_GLOBAL_PROPERTY(qreal, tint, 0.35)
+    CONFIG_GLOBAL_PROPERTY(qreal, highlight, 0.85)
+};
+
 class AppearanceConfig : public settings::ObjectNode {
     CONFIG_NODE(AppearanceConfig, settings::ObjectNode)
 
@@ -280,6 +290,7 @@ class AppearanceConfig : public settings::ObjectNode {
     CONFIG_SUBOBJECT(AppearanceFont, font)
     CONFIG_SUBOBJECT(AppearanceAnim, anim)
     CONFIG_SUBOBJECT(AppearanceTransparency, transparency)
+    CONFIG_SUBOBJECT(AppearanceGlass, glass)
 };
 
 } // namespace caelestia::config

@@ -7,6 +7,7 @@ import Caelestia.I18n
 import qs.components
 import qs.components.controls
 import qs.services
+import qs.utils
 import qs.modules.launcher.services
 import qs.modules.nexus.common
 
@@ -45,6 +46,16 @@ PageBase {
         return items;
     }
     readonly property MenuItem modeActive: isDynamic && smart ? autoItem : (Colours.currentLight ? lightItem : darkItem)
+
+    readonly property MenuItem standardItem: MenuItem {
+        text: Tr.tr("Standard")
+        icon: "rectangle"
+    }
+    readonly property MenuItem glassItem: MenuItem {
+        text: Tr.tr("Liquid Glass")
+        icon: "water_drop"
+    }
+    readonly property MenuItem styleActive: Colours.glass.enabled ? glassItem : standardItem
 
     function schemeLabel(name: string): string {
         if (name === "dynamic")
@@ -119,7 +130,9 @@ PageBase {
     isSubPage: true
 
     onModeActiveChanged: modeRow.active = modeActive
+    onStyleActiveChanged: styleRow.active = styleActive
     Component.onCompleted: {
+        styleRow.active = styleActive;
         updateNames();
         modeRow.active = modeActive;
         Schemes.reloadList();
@@ -237,6 +250,54 @@ PageBase {
             onSelected: item => root.applyMode(item)
         }
 
+        // Surface style
+        SectionHeader {
+            text: Tr.tr("Surface style")
+        }
+
+        SelectRow {
+            id: styleRow
+
+            first: true
+            last: !Colours.glass.enabled
+            label: Tr.tr("Style")
+            subtext: Tr.tr("How the bar and panels are drawn")
+            menuOnTop: true
+            menuItems: [root.standardItem, root.glassItem]
+            onSelected: item => {
+                const glass = item === root.glassItem;
+                if (glass !== GlobalConfig.appearance.glass.enabled)
+                    GlobalConfig.appearance.glass.enabled = glass;
+            }
+        }
+
+        SliderRow {
+            visible: Colours.glass.enabled
+            icon: "opacity"
+            label: Tr.tr("Glass tint")
+            valueLabel: Strings.percentOne(value)
+            value: Colours.glass.tint
+            onMoved: v => {
+                const tint = Math.max(0.1, Math.min(0.8, v));
+                if (tint !== GlobalConfig.appearance.glass.tint)
+                    GlobalConfig.appearance.glass.tint = tint;
+            }
+        }
+
+        SliderRow {
+            visible: Colours.glass.enabled
+            last: true
+            icon: "flare"
+            label: Tr.tr("Highlight")
+            valueLabel: Strings.percentOne(value)
+            value: Colours.glass.highlight
+            onMoved: v => {
+                const highlight = Math.max(0, Math.min(1, v));
+                if (highlight !== GlobalConfig.appearance.glass.highlight)
+                    GlobalConfig.appearance.glass.highlight = highlight;
+            }
+        }
+
         // Transparency
         SectionHeader {
             text: Tr.tr("Transparency")
@@ -247,8 +308,9 @@ PageBase {
             last: true
             text: Tr.tr("Transparency")
             // TRANSLATORS: %1/%2 = opacity values from 0 to 1 for the base surface and layered surfaces
-            subtext: Tr.tr("Base %1, layers %2").arg(Colours.transparency.base).arg(Colours.transparency.layers)
+            subtext: Colours.glass.enabled ? Tr.tr("Included in Liquid Glass") : Tr.tr("Base %1, layers %2").arg(Colours.transparency.base).arg(Colours.transparency.layers)
             checked: Colours.transparency.enabled
+            disabled: Colours.glass.enabled
             onToggled: GlobalConfig.appearance.transparency.enabled = checked
         }
 

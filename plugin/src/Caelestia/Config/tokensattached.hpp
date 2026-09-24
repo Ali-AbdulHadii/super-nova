@@ -22,6 +22,7 @@ class Tokens : public QQuickAttachedPropertyPropagator, public QQmlParserStatus 
     Q_PROPERTY(const caelestia::config::AppearanceSpacing* spacing READ spacing NOTIFY sourceChanged)
     Q_PROPERTY(const caelestia::config::AppearancePadding* padding READ padding NOTIFY sourceChanged)
     Q_PROPERTY(const caelestia::config::AppearanceTransparency* transparency READ transparency NOTIFY sourceChanged)
+    Q_PROPERTY(const caelestia::config::AppearanceGlass* glass READ glass NOTIFY sourceChanged)
     Q_PROPERTY(const caelestia::config::SizeTokens* sizes READ sizes NOTIFY sourceChanged)
     Q_PROPERTY(const caelestia::config::FontTokens* font READ font NOTIFY sourceChanged)
     Q_PROPERTY(const caelestia::config::AnimTokens* anim READ anim NOTIFY sourceChanged)
@@ -36,6 +37,7 @@ public:
     [[nodiscard]] const AppearanceSpacing* spacing() const;
     [[nodiscard]] const AppearancePadding* padding() const;
     [[nodiscard]] static const AppearanceTransparency* transparency();
+    [[nodiscard]] static const AppearanceGlass* glass();
 
     [[nodiscard]] const SizeTokens* sizes() const;
     [[nodiscard]] const FontTokens* font() const;

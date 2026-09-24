@@ -16,6 +16,8 @@ layout(std140, binding = 0) uniform buf {
     vec4 color;
     int hasInverted;
     float invertedRadius;
+    int glass;
+    float glassBezel;
     vec4 invertedOuter;
     vec4 invertedInner;
     vec4 rectData[80];
@@ -265,5 +267,30 @@ void main() {
 
     float fw = fwidth(mergedSdf);
     float alpha = 1.0 - smoothstep(-fw, fw, mergedSdf);
+
+    if (glass != 0) {
+        // Glass mode writes light data, not colour, for glass.frag to composite:
+        // r = specular rim, g = bezel light, b = plain edge line. Every shape covering a
+        // pixel computes the same values from the merged SDF, so blend-zone overdraw
+        // stays invisible exactly as it does for the flat colour.
+        float d = max(-mergedSdf, 0.0); // depth inside the edge, in px
+
+        // Outward normal from the SDF gradient; the SDF is smooth, so screen-space
+        // derivatives are enough and no second evaluation is needed
+        vec2 grad = vec2(dFdx(mergedSdf), dFdy(mergedSdf));
+        vec2 n = grad / max(length(grad), 1e-4);
+
+        // Key light from the top-left, a weaker fill from the opposite corner
+        vec2 lightDir = normalize(vec2(-1.0, -1.0));
+        float lit = pow(max(dot(n, lightDir), 0.0), 2.0) + 0.35 * pow(max(dot(n, -lightDir), 0.0), 2.0);
+
+        float edge = 1.0 - smoothstep(0.5, 1.5 + fw, d);
+        float rim = edge * clamp(0.25 + 0.75 * lit, 0.0, 1.0);
+        float bezel = exp(-d / glassBezel) * (0.6 + 0.4 * lit);
+
+        fragColor = vec4(vec3(rim, bezel, edge) * alpha, alpha) * qt_Opacity;
+        return;
+    }
+
     fragColor = vec4(color.rgb * alpha, alpha) * qt_Opacity;
 }

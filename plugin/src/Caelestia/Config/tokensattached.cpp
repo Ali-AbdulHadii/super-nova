@@ -99,6 +99,10 @@ const AppearanceTransparency* Tokens::transparency() {
     return ConfigSingleton::instance()->appearance()->transparency(); // Transparency is always global
 }
 
+const AppearanceGlass* Tokens::glass() {
+    return ConfigSingleton::instance()->appearance()->glass(); // Like transparency, always global
+}
+
 const SizeTokens* Tokens::sizes() const {
     if (m_tokens)
         return m_tokens->sizes();

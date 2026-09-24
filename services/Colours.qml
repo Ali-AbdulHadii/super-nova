@@ -25,6 +25,7 @@ Singleton {
     readonly property M3Palette current: M3Palette {}
     readonly property M3Palette preview: M3Palette {}
     readonly property Transparency transparency: Transparency {}
+    readonly property Glass glass: Glass {}
     readonly property alias wallLuminance: analyser.luminance
 
     property var cmdQueue: []
@@ -144,7 +145,9 @@ Singleton {
             rule = "keyword layerrule %1 %2, match:namespace caelestia-drawers";
             trEnabled = transparency.enabled ? 1 : 0;
         }
-        Hypr.extras.batchMessage([rule.arg("blur").arg(trEnabled), rule.arg("ignore_alpha").arg(Math.max(0, transparency.base - 0.03))]);
+        // Glass blurs only the tinted body: the soft shadow around it stays below the cutoff
+        const ignoreAlpha = glass.enabled ? glass.tint - 0.05 : transparency.base - 0.03;
+        Hypr.extras.batchMessage([rule.arg("blur").arg(trEnabled), rule.arg("ignore_alpha").arg(Math.max(0, ignoreAlpha))]);
     }
 
     function requestReloadHyprRules(): void {
@@ -224,8 +227,19 @@ Singleton {
         onTriggered: root.requestReloadHyprRules()
     }
 
+    // Liquid Glass surface style for the bar and drawers (see GlassEffect.qml)
+    component Glass: QtObject {
+        readonly property bool enabled: Tokens.glass.enabled
+        readonly property real tint: Math.max(0.1, Math.min(0.8, Tokens.glass.tint))
+        readonly property real highlight: Math.max(0, Math.min(1, Tokens.glass.highlight))
+
+        onEnabledChanged: root.requestReloadHyprRules()
+        onTintChanged: root.requestReloadHyprRules()
+    }
+
     component Transparency: QtObject {
-        readonly property bool enabled: Tokens.transparency.enabled
+        // Glass implies transparency, so cards inside glass panels aren't opaque slabs
+        readonly property bool enabled: Tokens.transparency.enabled || root.glass.enabled
         readonly property real base: Math.max(0, Math.min(1, Tokens.transparency.base - (root.light ? 0.1 : 0)))
         readonly property real layers: Math.max(0, Math.min(1, Tokens.transparency.layers))
 

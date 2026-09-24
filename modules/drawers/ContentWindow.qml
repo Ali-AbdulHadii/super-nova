@@ -10,6 +10,7 @@ import Caelestia.Blobs
 import Caelestia.Config
 import qs.components
 import qs.components.containers
+import qs.components.effects
 import qs.services
 import qs.modules.bar
 
@@ -148,12 +149,31 @@ StyledWindow {
 
     Item {
         anchors.fill: parent
-        opacity: root.surfaceColour.a
+        // Glass composites its own alpha (tint, light, shadow), so the layer stays opaque
+        opacity: Colours.glass.enabled ? 1 : root.surfaceColour.a
         layer.enabled: true
-        layer.effect: MultiEffect {
-            shadowEnabled: true
-            blurMax: 15
-            shadowColor: Qt.alpha(Colours.palette.m3shadow, Math.max(0, root.shadowOpacity))
+        layer.effect: Colours.glass.enabled ? glassEffect : shadowEffect
+
+        Component {
+            id: shadowEffect
+
+            MultiEffect {
+                shadowEnabled: true
+                blurMax: 15
+                shadowColor: Qt.alpha(Colours.palette.m3shadow, Math.max(0, root.shadowOpacity))
+            }
+        }
+
+        Component {
+            id: glassEffect
+
+            GlassEffect {
+                tint: Qt.alpha(root.surfaceColour, Colours.glass.tint)
+                highlight: Colours.glass.highlight
+                lightMode: Colours.light ? 1 : 0
+                // Glass shadows are softer than the solid surface's
+                shadowColour: Qt.alpha(Colours.palette.m3shadow, Math.max(0, root.shadowOpacity * 0.5))
+            }
         }
 
         BlobGroup {
@@ -161,6 +181,7 @@ StyledWindow {
 
             color: root.surfaceColour
             smoothing: root.contentItem.Config.border.smoothing
+            glass: Colours.glass.enabled
         }
 
         BlobInvertedRect {

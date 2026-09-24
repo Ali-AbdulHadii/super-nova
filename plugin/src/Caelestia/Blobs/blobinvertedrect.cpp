@@ -125,6 +125,8 @@ QSGNode* BlobInvertedRect::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData
     material->m_smoothFactor = pad;
     material->m_myIndex = m_cachedMyIndex;
     material->m_color = m_group->color();
+    material->m_glass = m_group->glass() ? 1 : 0;
+    material->m_glassBezel = static_cast<float>(m_group->glassBezel());
     material->m_hasInverted = m_cachedHasInverted ? 1 : 0;
     material->m_invertedRadius = m_cachedInvertedRadius;
     memcpy(material->m_invertedOuter, m_cachedInvertedOuter, sizeof(m_cachedInvertedOuter));
