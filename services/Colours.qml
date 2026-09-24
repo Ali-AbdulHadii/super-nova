@@ -15,6 +15,8 @@ Singleton {
     property bool showPreview
     property string scheme
     property string flavour
+    property string variant
+    property list<string> modes: ["light", "dark"]
     readonly property bool light: showPreview ? previewLight : currentLight
     property bool currentLight
     property bool previewLight
@@ -25,6 +27,8 @@ Singleton {
     readonly property Transparency transparency: Transparency {}
     readonly property alias wallLuminance: analyser.luminance
 
+    property var cmdQueue: []
+    property bool modesPending
     property bool cooldownPending
     property real lastBaseTransparency
 
@@ -64,9 +68,13 @@ Singleton {
         const scheme = JSON.parse(data);
 
         if (!isPreview) {
+            const changed = scheme.name !== root.scheme || scheme.flavour !== root.flavour;
             root.scheme = scheme.name;
             flavour = scheme.flavour;
             currentLight = scheme.mode === "light";
+            root.variant = scheme.variant ?? "";
+            if (changed)
+                root.refreshModes();
         } else {
             previewLight = scheme.mode === "light";
         }
@@ -78,8 +86,53 @@ Singleton {
         }
     }
 
+    // Scheme changes run one at a time: each CLI call rewrites scheme.json, so
+    // overlapping calls (e.g. set scheme, then re-derive from the wallpaper) race.
+    function run(argv: list<string>): void {
+        cmdQueue.push(argv);
+        if (!cmdProc.running)
+            runNext();
+    }
+
+    function runNext(): void {
+        const next = cmdQueue.shift();
+        if (next)
+            cmdProc.exec(next);
+    }
+
+    // The modes the current scheme and flavour actually ship. The CLI hard-codes
+    // light + dark for dynamic, so it isn't asked.
+    function refreshModes(): void {
+        if (scheme === "dynamic") {
+            modes = ["light", "dark"];
+        } else if (modesProc.running) {
+            modesPending = true;
+        } else {
+            modesProc.running = true;
+        }
+    }
+
     function setMode(mode: string): void {
-        Quickshell.execDetached(["caelestia", "scheme", "set", "--notify", "-m", mode]);
+        if (mode !== "light" && mode !== "dark")
+            return;
+        run(["caelestia", "scheme", "set", "--notify", "-m", mode]);
+    }
+
+    function setScheme(name: string, flavour: string, rederive: bool): void {
+        run(["caelestia", "scheme", "set", "--notify", "-n", name, "-f", flavour]);
+        if (rederive)
+            root.rederive();
+    }
+
+    // The CLI accepts any string here, so callers must validate the variant
+    function setVariant(variant: string): void {
+        run(["caelestia", "scheme", "set", "-v", variant]);
+    }
+
+    // Re-runs smart scheme detection for the current wallpaper (no --no-smart on purpose)
+    function rederive(): void {
+        if (Wallpapers.actualCurrent)
+            run(["caelestia", "wallpaper", "-f", Wallpapers.actualCurrent]);
     }
 
     function reloadHyprRules(): void {
@@ -118,6 +171,31 @@ Singleton {
         watchChanges: true
         onFileChanged: reload()
         onLoaded: root.load(text(), false)
+    }
+
+    Process {
+        id: cmdProc
+
+        onRunningChanged: {
+            if (!running)
+                root.runNext();
+        }
+    }
+
+    Process {
+        id: modesProc
+
+        command: ["caelestia", "scheme", "list", "-m"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const modes = text.trim().split("\n").filter(m => m === "light" || m === "dark");
+                root.modes = modes.length ? modes : ["light", "dark"];
+                if (root.modesPending) {
+                    root.modesPending = false;
+                    root.refreshModes();
+                }
+            }
+        }
     }
 
     ImageAnalyser {

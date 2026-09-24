@@ -12,6 +12,7 @@ Searcher {
 
     property string currentScheme
     property string currentVariant
+    property var byName: ({})
 
     function transformSearch(search: string): string {
         return search.slice(`${GlobalConfig.launcher.actionPrefix}scheme `.length);
@@ -23,6 +24,10 @@ Searcher {
 
     function reload(): void {
         getCurrent.running = true;
+    }
+
+    function reloadList(): void {
+        getSchemes.running = true;
     }
 
     list: schemes.instances
@@ -43,7 +48,14 @@ Searcher {
         command: ["caelestia", "scheme", "list"]
         stdout: StdioCollector {
             onStreamFinished: {
-                const schemeData = JSON.parse(text);
+                let schemeData;
+                try {
+                    schemeData = JSON.parse(text);
+                } catch (e) {
+                    return;
+                }
+                root.byName = schemeData;
+
                 const list = Object.entries(schemeData).map(([name, f]) => Object.entries(f).map(([flavour, colours]) => ({
                                 name,
                                 flavour,

@@ -13,6 +13,7 @@ ConnectedRect {
     property alias text: label.text
     property alias subtext: subLabel.text
     property string trailingIcon
+    property color trailingIconColour: Colours.palette.m3onSurfaceVariant
     property alias disabled: stateLayer.disabled
 
     readonly property alias iconLabel: iconLabel
@@ -89,7 +90,7 @@ ConnectedRect {
 
             sourceComponent: MaterialIcon {
                 text: root.trailingIcon
-                color: Colours.palette.m3onSurfaceVariant
+                color: root.trailingIconColour
                 fontStyle: Tokens.font.icon.medium
             }
         }

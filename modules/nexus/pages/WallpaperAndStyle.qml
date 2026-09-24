@@ -193,20 +193,17 @@ PageBase {
         ToggleRow {
             Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
 
-            text: Tr.tr("Transparency")
-            // TRANSLATORS: %1/%2 = opacity values from 0 to 1 for the base surface and layered surfaces
-            subtext: Tr.tr("Base %1, layers %2").arg(Colours.transparency.base).arg(Colours.transparency.layers)
-            checked: Colours.transparency.enabled
-            onToggled: GlobalConfig.appearance.transparency.enabled = checked
-        }
-
-        ToggleRow {
-            Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
-
             last: true
             text: Tr.tr("Dark theme")
             checked: !Colours.light
-            onToggled: Colours.setMode(checked ? "dark" : "light")
+            // Single-mode schemes (e.g. Catppuccin Mocha) have nothing to switch to
+            disabled: Colours.modes.length < 2
+            onToggled: {
+                // An explicit choice turns Auto off, or the next wallpaper change would undo it
+                if (Colours.scheme === "dynamic")
+                    GlobalConfig.services.smartScheme = false;
+                Colours.setMode(checked ? "dark" : "light");
+            }
         }
     }
 }
