@@ -52,6 +52,7 @@ StyledRect {
 
     onCheckedChanged: internalChecked = checked
 
+    glassCard: type !== ButtonBase.Text
     radius: {
         if (radiusMorph && pressed)
             return pressedRadius;

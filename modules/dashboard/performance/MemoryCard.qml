@@ -13,6 +13,7 @@ StyledRect {
 
     readonly property color accent: Colours.palette.m3tertiary
 
+    glassCard: true
     color: Colours.tPalette.m3surfaceContainer
     radius: Tokens.rounding.medium
 

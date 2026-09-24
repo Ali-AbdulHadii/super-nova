@@ -359,6 +359,95 @@ PageBase {
             }
         }
 
+        // What the glass style reaches
+        SectionHeader {
+            visible: Colours.glass.enabled
+            text: Tr.tr("Glass applies to")
+        }
+
+        ToggleRow {
+            visible: Colours.glass.enabled
+            first: true
+            text: Tr.tr("Bar & border")
+            checked: GlobalConfig.appearance.glass.bar
+            onToggled: GlobalConfig.appearance.glass.bar = checked
+        }
+
+        ToggleRow {
+            visible: Colours.glass.enabled
+            text: Tr.tr("Panels")
+            subtext: Tr.tr("Dashboard, launcher, sidebar and other pop-outs")
+            checked: GlobalConfig.appearance.glass.panels
+            onToggled: GlobalConfig.appearance.glass.panels = checked
+        }
+
+        ToggleRow {
+            visible: Colours.glass.enabled
+            text: Tr.tr("Cards & buttons")
+            subtext: GlobalConfig.appearance.glass.panels ? Tr.tr("A glass rim on the tiles and buttons inside panels") : Tr.tr("Needs glass panels")
+            disabled: !GlobalConfig.appearance.glass.panels
+            checked: GlobalConfig.appearance.glass.cards
+            onToggled: GlobalConfig.appearance.glass.cards = checked
+        }
+
+        ToggleRow {
+            visible: Colours.glass.enabled
+            last: true
+            text: Tr.tr("Lock screen")
+            checked: GlobalConfig.appearance.glass.lock
+            onToggled: GlobalConfig.appearance.glass.lock = checked
+        }
+
+        // Terminals have their own glass settings, independent of the style above
+        SectionHeader {
+            text: Tr.tr("Terminals")
+        }
+
+        ToggleRow {
+            first: true
+            last: !TerminalGlass.enabled
+            text: Tr.tr("Glass terminals")
+            subtext: Tr.tr("foot and kitty; new foot windows pick up changes")
+            checked: GlobalConfig.appearance.glass.terminals.enabled
+            onToggled: GlobalConfig.appearance.glass.terminals.enabled = checked
+        }
+
+        SliderRow {
+            visible: TerminalGlass.enabled
+            icon: "opacity"
+            label: Tr.tr("Background opacity")
+            valueLabel: Strings.percentOne(value)
+            value: TerminalGlass.opacity
+            onMoved: v => {
+                const opacity = Math.max(0.3, Math.min(1, v));
+                if (opacity !== GlobalConfig.appearance.glass.terminals.opacity)
+                    GlobalConfig.appearance.glass.terminals.opacity = opacity;
+            }
+        }
+
+        ToggleRow {
+            visible: TerminalGlass.enabled
+            last: !TerminalGlass.rim
+            text: Tr.tr("Glass rim")
+            subtext: Tr.tr("A light border around terminal windows")
+            checked: GlobalConfig.appearance.glass.terminals.rim
+            onToggled: GlobalConfig.appearance.glass.terminals.rim = checked
+        }
+
+        SliderRow {
+            visible: TerminalGlass.enabled && TerminalGlass.rim
+            last: true
+            icon: "flare"
+            label: Tr.tr("Rim brightness")
+            valueLabel: Strings.percentOne(value)
+            value: TerminalGlass.rimOpacity
+            onMoved: v => {
+                const rimOpacity = Math.max(0, Math.min(1, v));
+                if (rimOpacity !== GlobalConfig.appearance.glass.terminals.rimOpacity)
+                    GlobalConfig.appearance.glass.terminals.rimOpacity = rimOpacity;
+            }
+        }
+
         // Transparency
         SectionHeader {
             text: Tr.tr("Transparency")

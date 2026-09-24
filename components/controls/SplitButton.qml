@@ -39,6 +39,7 @@ Row {
     spacing: Math.floor(Tokens.spacing.extraSmall / 2)
 
     StyledRect {
+        glassCard: true
         radius: implicitHeight / 2 * Math.min(1, Tokens.rounding.scale)
         topRightRadius: Tokens.rounding.medium / 2
         bottomRightRadius: Tokens.rounding.medium / 2
@@ -98,6 +99,7 @@ Row {
 
         property real rad: root.expanded ? implicitHeight / 2 * Math.min(1, Tokens.rounding.scale) : Tokens.rounding.medium / 2
 
+        glassCard: true
         radius: implicitHeight / 2 * Math.min(1, Tokens.rounding.scale)
         topLeftRadius: rad
         bottomLeftRadius: rad

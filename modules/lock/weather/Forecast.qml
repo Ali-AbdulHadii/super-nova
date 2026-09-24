@@ -11,6 +11,7 @@ import qs.utils
 StyledRect {
     id: root
 
+    glassCard: true
     color: Colours.layer(Colours.palette.m3surfaceContainerHigh, 2)
     radius: Tokens.rounding.extraLargeIncreased
     implicitHeight: header.anchors.margins + header.implicitHeight + Tokens.spacing.medium + layout.implicitHeight + layout.anchors.bottomMargin

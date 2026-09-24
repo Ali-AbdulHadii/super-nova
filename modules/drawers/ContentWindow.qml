@@ -44,6 +44,8 @@ StyledWindow {
     readonly property real borderLayoutThickness: hasFullscreen ? 0 : contentItem.Config.border.thickness
 
     property color surfaceColour: Colours.tPalette.m3surface
+    // Registered so cards and buttons in the drawers can take the glass rim
+    readonly property var cardWindow: contentItem.Window.window
 
     readonly property int dragMaskPadding: {
         if (focusGrab.active || panels.popouts.isDetached)
@@ -59,6 +61,9 @@ StyledWindow {
         return Math.max(...thresholds);
     }
 
+    onCardWindowChanged: Colours.glass.registerCardWindow(cardWindow, "drawers")
+    Component.onCompleted: Colours.glass.registerCardWindow(cardWindow, "drawers")
+    Component.onDestruction: Colours.glass.unregisterCardWindow(cardWindow)
     onHasFullscreenChanged: {
         screenState.launcher = false;
         screenState.session = false;
@@ -150,9 +155,9 @@ StyledWindow {
     Item {
         anchors.fill: parent
         // Glass composites its own alpha (tint, light, shadow), so the layer stays opaque
-        opacity: Colours.glass.enabled ? 1 : root.surfaceColour.a
+        opacity: Colours.glass.drawers ? 1 : root.surfaceColour.a
         layer.enabled: true
-        layer.effect: Colours.glass.enabled ? glassEffect : shadowEffect
+        layer.effect: Colours.glass.drawers ? glassEffect : shadowEffect
 
         Component {
             id: shadowEffect
@@ -175,6 +180,9 @@ StyledWindow {
                 // under hyprliquid every non-transparent pixel of this surface becomes glass.
                 shadowColour: Colours.glass.apple ? "transparent" : Qt.alpha(Colours.palette.m3shadow, Math.max(0, root.shadowOpacity * 0.5))
                 apple: Colours.glass.apple ? 1 : 0
+                barGlass: Colours.glass.bar ? 1 : 0
+                panelsGlass: Colours.glass.panels ? 1 : 0
+                solidColour: root.surfaceColour
                 // This window and the wallpaper window both fill the screen from its origin,
                 // so the wallpaper lines up with the desktop pixel for pixel
                 realisticEnabled: Colours.glass.realistic && !Colours.glass.apple && root.contentItem.Config.background.wallpaperEnabled
@@ -189,7 +197,7 @@ StyledWindow {
 
             color: root.surfaceColour
             smoothing: root.contentItem.Config.border.smoothing
-            glass: Colours.glass.enabled
+            glass: Colours.glass.drawers
         }
 
         BlobInvertedRect {

@@ -158,7 +158,7 @@ Singleton {
         }
         // Glass blurs only the tinted body: the soft shadow around it stays below the cutoff.
         // Apple glass has no shadow and a nearly clear body, so its cutoff sits just above 0.
-        let ignoreAlpha = glass.enabled ? glass.tint - 0.05 : transparency.base - 0.03;
+        let ignoreAlpha = glass.drawers ? glass.tint - 0.05 : transparency.base - 0.03;
         if (glass.apple)
             ignoreAlpha = glass.refracting ? glass.pluginIgnoreAlpha : 0.01;
         const msgs = [rule.arg("blur").arg(trEnabled), rule.arg("ignore_alpha").arg(Math.max(0, ignoreAlpha))];
@@ -279,10 +279,23 @@ Singleton {
         readonly property real highlight: Math.max(0, Math.min(1, Tokens.glass.highlight))
         readonly property bool realistic: enabled && Tokens.glass.realistic && !Tokens.glass.apple
         readonly property bool apple: enabled && Tokens.glass.apple
+        // What the style reaches. The drawers only switch to the glass pipeline when
+        // at least one of their parts is glass.
+        readonly property bool bar: enabled && Tokens.glass.bar
+        readonly property bool panels: enabled && Tokens.glass.panels
+        readonly property bool drawers: bar || panels
+        readonly property bool cards: panels && Tokens.glass.cards
+        readonly property bool lock: enabled && Tokens.glass.lock
+
+        // Windows whose cards and buttons may take the glass rim, as { window, kind }
+        // pairs; kind is "drawers" or "lock". Settings windows never register.
+        property var cardWindows: []
         readonly property real refraction: Math.max(0, Math.min(1, Tokens.glass.refraction))
         readonly property real dispersion: Math.max(0, Math.min(1, Tokens.glass.dispersion))
         // Realistic glass falls back to the see-through kind when there is no wallpaper
-        readonly property bool opaqueBody: realistic && GlobalConfig.background.wallpaperEnabled
+        // Any solid (non-glass) part is translucent Standard surface, which still needs
+        // the compositor's blur behind it
+        readonly property bool opaqueBody: realistic && bar && panels && GlobalConfig.background.wallpaperEnabled
 
         // The hyprliquid Hyprland plugin, if loaded, refracts what is behind Apple glass
         property bool pluginPresent
@@ -299,10 +312,32 @@ Singleton {
         // Refraction 0-1 maps onto a glass index of refraction of 1.0-1.07
         readonly property real pluginIor: 1 + refraction * 0.07
 
+        function registerCardWindow(window: var, kind: string): void {
+            if (!window || cardWindows.some(e => e.window === window))
+                return;
+            const entry = {
+                window: window,
+                kind: kind
+            };
+            cardWindows = [...cardWindows, entry];
+        }
+
+        function unregisterCardWindow(window: var): void {
+            cardWindows = cardWindows.filter(e => e.window !== window);
+        }
+
+        function cardsIn(window: var): bool {
+            const entry = cardWindows.find(e => e.window === window);
+            if (!entry)
+                return false;
+            return entry.kind === "lock" ? lock : cards;
+        }
+
         onEnabledChanged: root.requestReloadHyprRules()
         onTintChanged: root.requestReloadHyprRules()
         onOpaqueBodyChanged: root.requestReloadHyprRules()
         onRefractingChanged: root.requestReloadHyprRules()
+        onDrawersChanged: root.requestReloadHyprRules()
         onPluginIorChanged: {
             if (refracting)
                 root.requestReloadHyprRules();

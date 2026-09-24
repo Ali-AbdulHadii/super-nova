@@ -15,11 +15,17 @@ WlSessionLockSurface {
     required property Pam pam
 
     readonly property alias unlocking: unlockAnim.running
+    // Registered so the lock's cards can take the glass rim
+    readonly property var cardWindow: background.Window.window
 
     contentItem.Config.screen: screen.name
     contentItem.Tokens.screen: screen.name
 
     color: "transparent"
+
+    onCardWindowChanged: Colours.glass.registerCardWindow(cardWindow, "lock")
+    Component.onCompleted: Colours.glass.registerCardWindow(cardWindow, "lock")
+    Component.onDestruction: Colours.glass.unregisterCardWindow(cardWindow)
 
     Connections {
         function onUnlock(): void {
@@ -161,18 +167,25 @@ WlSessionLockSurface {
         anchors.fill: parent
         opacity: 0
 
-        layer.enabled: true
-        layer.effect: MultiEffect {
+        Loader {
+            id: backgroundSource
+
+            anchors.fill: parent
+            visible: false
+            sourceComponent: Config.lock.useWallpaper ? wallpaperBackground : screencopyBackground
+        }
+
+        // An explicit item (not a layer effect) so glass can sample the blurred result
+        MultiEffect {
+            id: backgroundBlur
+
+            anchors.fill: parent
+            source: backgroundSource
             autoPaddingEnabled: false
             blurEnabled: true
             blur: 1
             blurMax: 64
             blurMultiplier: 1
-        }
-
-        Loader {
-            anchors.fill: parent
-            sourceComponent: Config.lock.useWallpaper ? wallpaperBackground : screencopyBackground
         }
     }
 
@@ -206,15 +219,32 @@ WlSessionLockSurface {
         rotation: 180
         scale: 0
 
+        // Realistic glass: the blurred background right behind the card, lensed at its edges
+        Loader {
+            anchors.fill: parent
+            active: Colours.glass.lock && Colours.glass.realistic
+
+            sourceComponent: GlassPlate {
+                plateRadius: lockBg.radius
+                refraction: Colours.glass.refraction
+                dispersion: Colours.glass.dispersion
+                sourceItem: backgroundBlur
+                backdropRect: Qt.rect(lockContent.x, lockContent.y, lockContent.width, lockContent.height)
+            }
+        }
+
         StyledRect {
             id: lockBg
 
             anchors.fill: parent
-            color: Colours.palette.m3surface
+            // Glass: a translucent tint over the blurred background (or the lensed plate),
+            // lit by the glass rim, with no shadow darkening through the body
+            glassCard: true
+            color: Colours.glass.lock ? Qt.alpha(Colours.palette.m3surface, Colours.glass.tint) : Colours.palette.m3surface
             radius: parent.radius
-            opacity: Colours.transparency.enabled ? Colours.transparency.base : 1
+            opacity: Colours.glass.lock ? 1 : (Colours.transparency.enabled ? Colours.transparency.base : 1)
 
-            layer.enabled: true
+            layer.enabled: !Colours.glass.lock
             layer.effect: MultiEffect {
                 shadowEnabled: true
                 blurMax: 15

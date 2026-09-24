@@ -10,6 +10,7 @@ import qs.services
 StyledRect {
     id: root
 
+    glassCard: true
     color: Colours.tPalette.m3surfaceContainer
     radius: Tokens.rounding.extraLarge
 

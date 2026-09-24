@@ -15,6 +15,7 @@ StyledRect {
     required property int centerWidth
     required property var lock
 
+    glassCard: true
     implicitWidth: {
         const w = centerWidth * 0.8;
         return lock.pam.buffer ? w : Math.min(w, inputField.placeholderWidth + iconWrapper.implicitWidth + enterButton.implicitWidth + input.spacing * 2 + Tokens.padding.medium * 2);

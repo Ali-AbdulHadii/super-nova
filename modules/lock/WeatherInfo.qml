@@ -10,6 +10,7 @@ StyledRect {
     required property int rootHeight
     readonly property bool showForecast: rootHeight >= Tokens.sizes.lock.showForecastHeight
 
+    glassCard: true
     implicitHeight: {
         const base = brief.implicitHeight + brief.anchors.topMargin;
         if (showForecast)

@@ -52,6 +52,7 @@ StyledRect {
             props.expandedNotifs.splice(props.expandedNotifs.indexOf(modelData), 1);
     }
 
+    glassCard: true
     anchors.left: parent?.left
     anchors.right: parent?.right
     implicitHeight: nonAnimHeight

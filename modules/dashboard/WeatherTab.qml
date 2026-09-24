@@ -66,6 +66,7 @@ Item {
         }
 
         StyledRect {
+            glassCard: true
             Layout.fillWidth: true
             implicitHeight: bigInfoRow.implicitHeight + Tokens.padding.small
 
@@ -154,6 +155,7 @@ Item {
                     required property int index
                     required property var modelData
 
+                    glassCard: true
                     Layout.fillWidth: true
                     implicitHeight: forecastItemColumn.implicitHeight + Tokens.padding.medium * 2
 
@@ -213,6 +215,7 @@ Item {
         property string value
         property color colour
 
+        glassCard: true
         Layout.fillWidth: true
         Layout.preferredHeight: 60
         radius: Tokens.rounding.medium

@@ -18,6 +18,7 @@ StyledRect {
     readonly property StyledText body: (expandedContent.item as ExpandedBody)?.body ?? null
     readonly property real nonAnimHeight: expanded ? summary.implicitHeight + expandedContent.implicitHeight + expandedContent.anchors.topMargin + Tokens.padding.medium * 2 : summaryHeightMetrics.height
 
+    glassCard: true
     implicitHeight: nonAnimHeight
 
     radius: Tokens.rounding.medium

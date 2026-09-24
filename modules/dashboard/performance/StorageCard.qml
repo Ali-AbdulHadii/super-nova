@@ -15,6 +15,7 @@ StyledRect {
     readonly property color accent: Colours.palette.m3secondary
     readonly property real percentage: Storage.primaryDisk?.perc ?? 0
 
+    glassCard: true
     color: Colours.tPalette.m3surfaceContainer
     radius: Tokens.rounding.extraExtraLarge
 

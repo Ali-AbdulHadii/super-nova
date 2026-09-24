@@ -49,6 +49,7 @@ Item {
     StyledClippingRect {
         id: image
 
+        glassCard: true
         anchors.horizontalCenter: parent.horizontalCenter
         y: Tokens.padding.large
         color: Colours.tPalette.m3surfaceContainer

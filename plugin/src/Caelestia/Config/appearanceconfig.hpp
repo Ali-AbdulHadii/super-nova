@@ -272,6 +272,17 @@ class AppearanceTransparency : public settings::ObjectNode {
 
 // Liquid Glass surface style for the bar and drawers. The compositor blurs what is
 // behind; the shell draws the rim, the bezel light, the tint and the shadow.
+// Terminal glass has its own settings, independent of the surface style: foot and
+// kitty background opacity plus a light Hyprland border as the rim
+class AppearanceGlassTerminals : public settings::ObjectNode {
+    CONFIG_NODE(AppearanceGlassTerminals, settings::ObjectNode)
+
+    CONFIG_GLOBAL_PROPERTY(bool, enabled, false)
+    CONFIG_GLOBAL_PROPERTY(qreal, opacity, 0.7)
+    CONFIG_GLOBAL_PROPERTY(bool, rim, true)
+    CONFIG_GLOBAL_PROPERTY(qreal, rimOpacity, 0.35)
+};
+
 class AppearanceGlass : public settings::ObjectNode {
     CONFIG_NODE(AppearanceGlass, settings::ObjectNode)
 
@@ -286,6 +297,13 @@ class AppearanceGlass : public settings::ObjectNode {
     // Apple glass: clear, barely tinted glass tuned against Apple's own screenshots.
     // With the hyprliquid Hyprland plugin loaded, the windows behind also refract.
     CONFIG_GLOBAL_PROPERTY(bool, apple, false)
+    // What the style reaches: the bar and border, the pop-out panels, the cards and
+    // buttons inside panels, and the lock screen
+    CONFIG_GLOBAL_PROPERTY(bool, bar, true)
+    CONFIG_GLOBAL_PROPERTY(bool, panels, true)
+    CONFIG_GLOBAL_PROPERTY(bool, cards, false)
+    CONFIG_GLOBAL_PROPERTY(bool, lock, false)
+    CONFIG_SUBOBJECT(AppearanceGlassTerminals, terminals)
 };
 
 class AppearanceConfig : public settings::ObjectNode {

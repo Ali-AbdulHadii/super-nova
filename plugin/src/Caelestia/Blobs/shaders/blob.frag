@@ -175,6 +175,11 @@ void main() {
         }
     }
 
+    // Union of the panels alone, and the frame alone, so glass mode can tell which part
+    // (bar and border, or a panel) each pixel belongs to
+    float rectSdf = mergedSdf;
+    float frameSdf = 1e10;
+
     if (hasInverted != 0) {
         float dOuter = sdBox(pixel, invertedOuter.xy, invertedOuter.zw) - 1.0;
         float dInner = sdRoundedBox(pixel, invertedInner.xy, invertedInner.zw, invertedRadius);
@@ -250,6 +255,7 @@ void main() {
                              min(innerLeft - outerLeft, outerRight - innerRight));
         float kFrame = clamp(min(smoothFactor, minThick - 1.0), 1.0, smoothFactor);
         float dFrame = smaxSharpA(dOuter, -dInner, kFrame);
+        frameSdf = dFrame;
 
         mergedSdf = smin(mergedSdf, dFrame, smoothFactor);
         if (dFrame < minDist) {
@@ -269,7 +275,7 @@ void main() {
 
     if (glass != 0) {
         // Glass mode writes geometry, not colour, for glass.frag to light and lens:
-        // rg = outward normal (0.5-biased), b = depth inside the edge over 64px.
+        // r = outward normal angle, g = depth inside the edge over 64px, b = part.
         // Every shape covering a pixel computes the same values from the merged SDF,
         // so blend-zone overdraw stays invisible exactly as it does for the flat colour.
         float glassDepth = -mergedSdf;
@@ -319,7 +325,13 @@ void main() {
         vec2 grad = -vec2(dFdx(glassDepth), dFdy(glassDepth));
         vec2 n = grad / max(length(grad), 1e-4);
 
-        fragColor = vec4(vec3(n * 0.5 + 0.5, depth) * alpha, alpha) * qt_Opacity;
+        // 1 on the bar and border, 0 on panels, blended over a few px where they join
+        float part = smoothstep(-2.0, 2.0, rectSdf - frameSdf);
+
+        // The normal travels as an angle so a channel is free for the part
+        float angle = atan(n.y, n.x) / 6.28318530718 + 0.5;
+
+        fragColor = vec4(vec3(angle, depth, part) * alpha, alpha) * qt_Opacity;
         return;
     }
 

@@ -25,6 +25,10 @@ ShaderEffect {
     property real dispersion: 0.5
     // Apple glass: clear body, white rim and inner band, no shadow
     property real apple
+    // Which parts are glass; the others show the Standard surface in solidColour
+    property real barGlass: 1
+    property real panelsGlass: 1
+    property color solidColour: "transparent"
 
     readonly property WallTextures textures: wallLoader.item as WallTextures
     readonly property real realistic: textures?.ready ? 1 : 0

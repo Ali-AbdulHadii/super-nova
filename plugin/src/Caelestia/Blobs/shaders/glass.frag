@@ -1,8 +1,9 @@
 #version 440
 
 // Liquid Glass compositor for a BlobGroup in glass mode (see blob.frag). The input
-// holds edge geometry, not colour: rg = outward normal (0.5-biased), b = depth
-// inside the edge over 64px, a = coverage, all premultiplied.
+// holds edge geometry, not colour: r = outward normal angle, g = depth inside the
+// edge over 64px, b = part (1 = bar and border, 0 = panel), a = coverage, all
+// premultiplied. Each part is either glass or the Standard solid surface.
 //
 // Standard glass: a translucent tint that the compositor blurs behind, with the
 // light on top. Realistic glass: an opaque body drawn from the wallpaper (which
@@ -27,6 +28,9 @@ layout(std140, binding = 0) uniform buf {
     float refraction;   // 0-1 lens strength
     float dispersion;   // 0-1 chromatic spread
     vec2 targetSize;    // px, to turn pixel offsets into UVs
+    vec4 solidColour;   // Standard surface for parts that aren't glass; alpha is its opacity
+    float barGlass;     // 1 = the bar and border are glass
+    float panelsGlass;  // 1 = the panels are glass
 };
 
 layout(binding = 1) uniform sampler2D source;
@@ -45,11 +49,13 @@ vec3 wallSample(vec2 uv, float sharpness) {
 void main() {
     vec4 src = texture(source, qt_TexCoord0);
     float cov = src.a;
-    vec3 data = cov > 0.0 ? src.rgb / cov : vec3(0.5, 0.5, 0.0);
+    vec3 data = cov > 0.0 ? src.rgb / cov : vec3(0.5, 0.0, 0.0);
 
-    vec2 n = data.rg * 2.0 - 1.0;
-    n /= max(length(n), 1e-4);
-    float d = clamp(data.b, 0.0, 1.0) * kDepthRange;
+    float a = (data.r - 0.5) * 6.28318530718;
+    vec2 n = vec2(cos(a), sin(a));
+    float d = clamp(data.g, 0.0, 1.0) * kDepthRange;
+    float glassWeight = mix(clamp(panelsGlass, 0.0, 1.0), clamp(barGlass, 0.0, 1.0), clamp(data.b, 0.0, 1.0));
+    vec4 solid = vec4(solidColour.rgb * solidColour.a, solidColour.a) * cov;
 
     // Key light from the top-left, a weaker fill from the opposite corner
     vec2 lightDir = normalize(vec2(-1.0, -1.0));
@@ -79,7 +85,7 @@ void main() {
         float appleLight = clamp((appleRim + band) * h, 0.0, 1.0);
         col = col * (1.0 - appleLight) + vec4(vec3(appleLight), appleLight);
 
-        fragColor = col * cov * qt_Opacity;
+        fragColor = mix(solid, col * cov, glassWeight) * qt_Opacity;
         return;
     }
 
@@ -116,7 +122,7 @@ void main() {
     float light = clamp(rim * h + bezel * 0.12 * h, 0.0, 1.0);
     glassCol = glassCol * (1.0 - light) + vec4(vec3(light), light);
 
-    glassCol *= cov;
+    glassCol = mix(solid, glassCol * cov, glassWeight);
 
     // Shadow only where the shape isn't, from the blurred coverage
     float sh = texture(shadowSource, qt_TexCoord0 - shadowOffset).a * shadowColour.a * (1.0 - cov);

@@ -99,6 +99,7 @@ GridLayout {
     }
 
     component Rect: StyledRect {
+        glassCard: true
         color: Colours.tPalette.m3surfaceContainer
     }
 }

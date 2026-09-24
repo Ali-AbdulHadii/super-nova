@@ -127,6 +127,7 @@ ColumnLayout {
     }
 
     StyledRect {
+        glassCard: true
         Layout.fillWidth: true
         Layout.preferredWidth: 400
         implicitHeight: content.implicitHeight + Tokens.padding.extraLargeIncreased
@@ -338,6 +339,7 @@ ColumnLayout {
                 }
 
                 StyledRect {
+                    glassCard: true
                     anchors.fill: parent
                     radius: Tokens.rounding.large
                     color: passwordContainer.activeFocus ? Qt.lighter(Colours.tPalette.m3surfaceContainer, 1.05) : Colours.tPalette.m3surfaceContainer

@@ -20,6 +20,7 @@ StyledRect {
         return 1 + Math.pow(Math.abs(diff), 0.8) * Math.sign(diff);
     }
 
+    glassCard: true
     implicitHeight: layout.implicitHeight + layout.anchors.margins * 2
     radius: Tokens.rounding.extraLarge
     color: Colours.tPalette.m3surfaceContainer

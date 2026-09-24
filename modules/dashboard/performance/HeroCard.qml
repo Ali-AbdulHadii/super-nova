@@ -18,6 +18,7 @@ StyledRect {
     required property real usage
     required property real temperature
 
+    glassCard: true
     color: Colours.tPalette.m3surfaceContainer
     radius: Tokens.rounding.extraLarge
 

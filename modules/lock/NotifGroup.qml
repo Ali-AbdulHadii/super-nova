@@ -44,6 +44,7 @@ StyledRect {
 
     property bool expanded
 
+    glassCard: true
     anchors.left: parent?.left
     anchors.right: parent?.right
     implicitHeight: content.implicitHeight + Tokens.padding.medium * 2

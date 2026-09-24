@@ -11,6 +11,7 @@ StyledRect {
 
     readonly property real nonAnimHeight: layout.implicitHeight + (IdleInhibitor.enabled ? activeChip.implicitHeight + activeChip.anchors.topMargin : 0) + Tokens.padding.extraLargeIncreased
 
+    glassCard: true
     implicitHeight: nonAnimHeight
 
     radius: Tokens.rounding.large

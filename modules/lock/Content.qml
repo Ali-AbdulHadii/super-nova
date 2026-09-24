@@ -45,6 +45,7 @@ RowLayout {
         }
 
         StyledRect {
+            glassCard: true
             Layout.fillWidth: true
             Layout.fillHeight: true
 

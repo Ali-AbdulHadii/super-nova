@@ -14,6 +14,7 @@ StyledClippingRect {
 
     required property var lock
 
+    glassCard: true
     implicitHeight: layout.implicitHeight + layout.anchors.margins * 2
     radius: Tokens.rounding.extraLarge
     color: Colours.tPalette.m3surfaceContainer
