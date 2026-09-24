@@ -171,11 +171,13 @@ StyledWindow {
                 tint: Qt.alpha(root.surfaceColour, Colours.glass.tint)
                 highlight: Colours.glass.highlight
                 lightMode: Colours.light ? 1 : 0
-                // Glass shadows are softer than the solid surface's
-                shadowColour: Qt.alpha(Colours.palette.m3shadow, Math.max(0, root.shadowOpacity * 0.5))
+                // Glass shadows are softer than the solid surface's. Apple glass has none:
+                // under hyprliquid every non-transparent pixel of this surface becomes glass.
+                shadowColour: Colours.glass.apple ? "transparent" : Qt.alpha(Colours.palette.m3shadow, Math.max(0, root.shadowOpacity * 0.5))
+                apple: Colours.glass.apple ? 1 : 0
                 // This window and the wallpaper window both fill the screen from its origin,
                 // so the wallpaper lines up with the desktop pixel for pixel
-                realisticEnabled: Colours.glass.realistic && root.contentItem.Config.background.wallpaperEnabled
+                realisticEnabled: Colours.glass.realistic && !Colours.glass.apple && root.contentItem.Config.background.wallpaperEnabled
                 wallpaperPath: Wallpapers.current
                 refraction: Colours.glass.refraction
                 dispersion: Colours.glass.dispersion

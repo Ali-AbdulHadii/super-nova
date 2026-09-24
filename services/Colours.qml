@@ -58,6 +58,14 @@ Singleton {
         return layer === 0 ? Qt.alpha(c, transparency.base) : alterColour(c, transparency.layers, layer ?? 1);
     }
 
+    // Apple glass keeps inner cards light and see-through, like Apple's controls,
+    // rather than the scheme's dark container slabs
+    function card(c: color): color {
+        if (!glass.apple)
+            return layer(c);
+        return Qt.alpha(Qt.tint(c, Qt.rgba(1, 1, 1, light ? 0.5 : 0.18)), light ? 0.45 : 0.2);
+    }
+
     function on(c: color): color {
         if (c.hslLightness < 0.5)
             return Qt.hsla(c.hslHue, c.hslSaturation, 0.9, 1);
@@ -148,9 +156,24 @@ Singleton {
             rule = "keyword layerrule %1 %2, match:namespace caelestia-drawers";
             trEnabled = blurBehind ? 1 : 0;
         }
-        // Glass blurs only the tinted body: the soft shadow around it stays below the cutoff
-        const ignoreAlpha = glass.enabled ? glass.tint - 0.05 : transparency.base - 0.03;
-        Hypr.extras.batchMessage([rule.arg("blur").arg(trEnabled), rule.arg("ignore_alpha").arg(Math.max(0, ignoreAlpha))]);
+        // Glass blurs only the tinted body: the soft shadow around it stays below the cutoff.
+        // Apple glass has no shadow and a nearly clear body, so its cutoff sits just above 0.
+        let ignoreAlpha = glass.enabled ? glass.tint - 0.05 : transparency.base - 0.03;
+        if (glass.apple)
+            ignoreAlpha = glass.refracting ? glass.pluginIgnoreAlpha : 0.01;
+        const msgs = [rule.arg("blur").arg(trEnabled), rule.arg("ignore_alpha").arg(Math.max(0, ignoreAlpha))];
+
+        // hyprliquid refracts the windows behind Apple glass. The rule is named so each
+        // reload replaces it, and it is only sent while the plugin is loaded, since
+        // Hyprland rejects rule keys it doesn't know.
+        if (Hypr.usingLua && glass.pluginPresent)
+            msgs.push(`eval hl.layer_rule({ name = "caelestia-glass", enabled = ${glass.refracting}, match = { namespace = "caelestia-drawers" }, ["hyprliquid:effect"] = "liquid_glass", ["hyprliquid:corner_radius"] = ${glass.pluginCornerRadius}, ["hyprliquid:vdf_map_mode"] = ${glass.pluginVdfMode}, ["hyprliquid:vdf_map_update_policy"] = "${glass.pluginVdfPolicy}", ["hyprliquid:highlight_style"] = ${glass.pluginHighlight}, ["hyprliquid:glass_ior"] = ${glass.pluginIor.toFixed(4)}, ["hyprliquid:glass_dispersion"] = ${glass.dispersion > 0} })`);
+
+        Hypr.extras.batchMessage(msgs);
+    }
+
+    function refreshGlassPlugin(): void {
+        glassPluginProc.running = true;
     }
 
     function requestReloadHyprRules(): void {
@@ -162,11 +185,15 @@ Singleton {
         }
     }
 
-    Component.onCompleted: root.requestReloadHyprRules()
+    Component.onCompleted: {
+        root.requestReloadHyprRules();
+        root.refreshGlassPlugin();
+    }
 
     Connections {
         function onConfigReloaded(): void {
             root.reloadHyprRules();
+            root.refreshGlassPlugin();
         }
 
         target: Hypr
@@ -204,6 +231,21 @@ Singleton {
         }
     }
 
+    Process {
+        id: glassPluginProc
+
+        command: ["hyprctl", "plugin", "list", "-j"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                let present = false;
+                try {
+                    present = JSON.parse(text).some(p => String(p?.name ?? "").toLowerCase().includes("hyprliquid"));
+                } catch (e) {}
+                root.glass.pluginPresent = present;
+            }
+        }
+    }
+
     ImageAnalyser {
         id: analyser
 
@@ -235,15 +277,40 @@ Singleton {
         readonly property bool enabled: Tokens.glass.enabled
         readonly property real tint: Math.max(0.1, Math.min(0.8, Tokens.glass.tint))
         readonly property real highlight: Math.max(0, Math.min(1, Tokens.glass.highlight))
-        readonly property bool realistic: enabled && Tokens.glass.realistic
+        readonly property bool realistic: enabled && Tokens.glass.realistic && !Tokens.glass.apple
+        readonly property bool apple: enabled && Tokens.glass.apple
         readonly property real refraction: Math.max(0, Math.min(1, Tokens.glass.refraction))
         readonly property real dispersion: Math.max(0, Math.min(1, Tokens.glass.dispersion))
         // Realistic glass falls back to the see-through kind when there is no wallpaper
         readonly property bool opaqueBody: realistic && GlobalConfig.background.wallpaperEnabled
 
+        // The hyprliquid Hyprland plugin, if loaded, refracts what is behind Apple glass
+        property bool pluginPresent
+        readonly property bool refracting: apple && pluginPresent
+        // Tuned against the drawers surface: one radius for every shape, as the plugin
+        // requires (panels are 28px, the frame 25px). Mode 2 is for shapes that meet.
+        readonly property int pluginCornerRadius: 28
+        readonly property int pluginVdfMode: 2
+        // "onchange" halves the plugin's idle GPU cost against "always", with no visible
+        // lag on the drawers' slide (measured on the RTX 5080)
+        readonly property string pluginVdfPolicy: "onchange"
+        readonly property int pluginHighlight: 0
+        readonly property real pluginIgnoreAlpha: 0.01
+        // Refraction 0-1 maps onto a glass index of refraction of 1.0-1.07
+        readonly property real pluginIor: 1 + refraction * 0.07
+
         onEnabledChanged: root.requestReloadHyprRules()
         onTintChanged: root.requestReloadHyprRules()
         onOpaqueBodyChanged: root.requestReloadHyprRules()
+        onRefractingChanged: root.requestReloadHyprRules()
+        onPluginIorChanged: {
+            if (refracting)
+                root.requestReloadHyprRules();
+        }
+        onDispersionChanged: {
+            if (refracting)
+                root.requestReloadHyprRules();
+        }
     }
 
     component Transparency: QtObject {
@@ -278,11 +345,11 @@ Singleton {
         readonly property color m3surface: root.layer(root.palette.m3surface, 0)
         readonly property color m3surfaceDim: root.layer(root.palette.m3surfaceDim, 0)
         readonly property color m3surfaceBright: root.layer(root.palette.m3surfaceBright, 0)
-        readonly property color m3surfaceContainerLowest: root.layer(root.palette.m3surfaceContainerLowest)
-        readonly property color m3surfaceContainerLow: root.layer(root.palette.m3surfaceContainerLow)
-        readonly property color m3surfaceContainer: root.layer(root.palette.m3surfaceContainer)
-        readonly property color m3surfaceContainerHigh: root.layer(root.palette.m3surfaceContainerHigh)
-        readonly property color m3surfaceContainerHighest: root.layer(root.palette.m3surfaceContainerHighest)
+        readonly property color m3surfaceContainerLowest: root.card(root.palette.m3surfaceContainerLowest)
+        readonly property color m3surfaceContainerLow: root.card(root.palette.m3surfaceContainerLow)
+        readonly property color m3surfaceContainer: root.card(root.palette.m3surfaceContainer)
+        readonly property color m3surfaceContainerHigh: root.card(root.palette.m3surfaceContainerHigh)
+        readonly property color m3surfaceContainerHighest: root.card(root.palette.m3surfaceContainerHighest)
         readonly property color m3onSurface: root.layer(root.palette.m3onSurface)
         readonly property color m3surfaceVariant: root.layer(root.palette.m3surfaceVariant, 0)
         readonly property color m3onSurfaceVariant: root.layer(root.palette.m3onSurfaceVariant)

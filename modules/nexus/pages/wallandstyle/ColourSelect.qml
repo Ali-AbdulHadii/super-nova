@@ -59,7 +59,24 @@ PageBase {
         text: Tr.tr("Realistic glass")
         icon: "lens_blur"
     }
-    readonly property MenuItem styleActive: Colours.glass.realistic ? realisticItem : (Colours.glass.enabled ? glassItem : standardItem)
+    readonly property MenuItem appleItem: MenuItem {
+        text: Tr.tr("Apple glass")
+        icon: "blur_circular"
+    }
+    readonly property MenuItem styleActive: {
+        if (Colours.glass.apple)
+            return appleItem;
+        if (Colours.glass.realistic)
+            return realisticItem;
+        return Colours.glass.enabled ? glassItem : standardItem;
+    }
+    readonly property string styleSubtext: {
+        if (Colours.glass.apple)
+            return Colours.glass.pluginPresent ? Tr.tr("Refracting the windows behind via hyprliquid") : Tr.tr("Install the hyprliquid plugin for real refraction");
+        if (Colours.glass.realistic)
+            return Tr.tr("Bends the wallpaper; panels don't show windows behind them");
+        return Tr.tr("How the bar and panels are drawn");
+    }
 
     function schemeLabel(name: string): string {
         if (name === "dynamic")
@@ -137,6 +154,7 @@ PageBase {
     onStyleActiveChanged: styleRow.active = styleActive
     Component.onCompleted: {
         styleRow.active = styleActive;
+        Colours.refreshGlassPlugin();
         updateNames();
         modeRow.active = modeActive;
         Schemes.reloadList();
@@ -265,17 +283,20 @@ PageBase {
             first: true
             last: !Colours.glass.enabled
             label: Tr.tr("Style")
-            subtext: Colours.glass.realistic ? Tr.tr("Bends the wallpaper; panels don't show windows behind them") : Tr.tr("How the bar and panels are drawn")
+            subtext: root.styleSubtext
             menuOnTop: true
-            menuItems: [root.standardItem, root.glassItem, root.realisticItem]
+            menuItems: [root.standardItem, root.glassItem, root.realisticItem, root.appleItem]
             onSelected: item => {
                 const glass = GlobalConfig.appearance.glass;
                 const enabled = item !== root.standardItem;
                 const realistic = item === root.realisticItem;
+                const apple = item === root.appleItem;
                 if (enabled !== glass.enabled)
                     glass.enabled = enabled;
                 if (realistic !== glass.realistic)
                     glass.realistic = realistic;
+                if (apple !== glass.apple)
+                    glass.apple = apple;
             }
         }
 
@@ -294,7 +315,7 @@ PageBase {
 
         SliderRow {
             visible: Colours.glass.enabled
-            last: !Colours.glass.realistic
+            last: !Colours.glass.realistic && !Colours.glass.refracting
             icon: "flare"
             label: Tr.tr("Highlight")
             valueLabel: Strings.percentOne(value)
@@ -307,7 +328,7 @@ PageBase {
         }
 
         SliderRow {
-            visible: Colours.glass.realistic
+            visible: Colours.glass.realistic || Colours.glass.refracting
             icon: "lens"
             label: Tr.tr("Refraction")
             valueLabel: Strings.percentOne(value)
@@ -320,7 +341,7 @@ PageBase {
         }
 
         SliderRow {
-            visible: Colours.glass.realistic
+            visible: Colours.glass.realistic || Colours.glass.refracting
             last: true
             icon: "gradient"
             label: Tr.tr("Colour fringing")

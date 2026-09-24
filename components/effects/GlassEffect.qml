@@ -23,6 +23,8 @@ ShaderEffect {
     property bool realisticEnabled
     property real refraction: 0.6
     property real dispersion: 0.5
+    // Apple glass: clear body, white rim and inner band, no shadow
+    property real apple
 
     readonly property WallTextures textures: wallLoader.item as WallTextures
     readonly property real realistic: textures?.ready ? 1 : 0

@@ -8,7 +8,8 @@
 // light on top. Realistic glass: an opaque body drawn from the wallpaper (which
 // the drawers window lines up with the desktop exactly), lensed near the edges
 // with chromatic dispersion, then tinted and lit the same way. Both draw a soft
-// shadow only outside the shape, so it never darkens the body.
+// shadow only outside the shape, so it never darkens the body. Apple glass: a
+// nearly clear body with its own light and no shadow (see its branch).
 
 layout(location = 0) in vec2 qt_TexCoord0;
 layout(location = 0) out vec4 fragColor;
@@ -22,6 +23,7 @@ layout(std140, binding = 0) uniform buf {
     float lightMode;    // 1 in light mode: adds a darker hairline for edge definition
     vec2 shadowOffset;  // in UV units
     float realistic;    // 1 = draw the body from the wallpaper
+    float apple;        // 1 = Apple glass: clear body, white rim and inner band, no shadow
     float refraction;   // 0-1 lens strength
     float dispersion;   // 0-1 chromatic spread
     vec2 targetSize;    // px, to turn pixel offsets into UVs
@@ -59,6 +61,27 @@ void main() {
 
     float h = clamp(highlight, 0.0, 1.0);
     float tintA = clamp(tint.a, 0.0, 1.0);
+
+    if (apple > 0.5) {
+        // Apple glass, matched against Apple's macOS Tahoe screenshots: the colour
+        // comes from what is behind (blurred by the compositor, or refracted by the
+        // hyprliquid plugin), lifted slightly towards white. A thin white rim, lit at
+        // the top-left and bottom-right alike, and a soft band of light inside the
+        // edge give the thickness. No shadow: every non-transparent pixel of this
+        // surface turns into glass under the plugin.
+        float bodyA = tintA * mix(0.3, 0.8, lightMode);
+        vec3 bodyRgb = mix(tint.rgb, vec3(1.0), mix(0.5, 0.7, lightMode));
+        vec4 col = vec4(bodyRgb * bodyA, bodyA);
+
+        float facing = pow(abs(dot(n, lightDir)), 1.5);
+        float appleRim = edge * (0.35 + 0.65 * facing) * 0.6;
+        float band = exp(-d / 10.0) * 0.16;
+        float appleLight = clamp((appleRim + band) * h, 0.0, 1.0);
+        col = col * (1.0 - appleLight) + vec4(vec3(appleLight), appleLight);
+
+        fragColor = col * cov * qt_Opacity;
+        return;
+    }
 
     vec4 glassCol;
     if (realistic > 0.5) {

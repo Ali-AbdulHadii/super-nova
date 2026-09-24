@@ -283,6 +283,9 @@ class AppearanceGlass : public settings::ObjectNode {
     CONFIG_GLOBAL_PROPERTY(bool, realistic, false)
     CONFIG_GLOBAL_PROPERTY(qreal, refraction, 0.6)
     CONFIG_GLOBAL_PROPERTY(qreal, dispersion, 0.5)
+    // Apple glass: clear, barely tinted glass tuned against Apple's own screenshots.
+    // With the hyprliquid Hyprland plugin loaded, the windows behind also refract.
+    CONFIG_GLOBAL_PROPERTY(bool, apple, false)
 };
 
 class AppearanceConfig : public settings::ObjectNode {
