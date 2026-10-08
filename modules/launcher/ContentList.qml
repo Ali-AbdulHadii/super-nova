@@ -7,6 +7,7 @@ import qs.components
 import qs.components.controls
 import qs.services
 import qs.utils
+import qs.modules.launcher.services
 
 Item {
     id: root
@@ -20,6 +21,7 @@ Item {
     required property int rounding
 
     readonly property bool showWallpapers: search.text.startsWith(`${GlobalConfig.launcher.actionPrefix}wallpaper `)
+    readonly property bool fileMode: (appList.item as AppList)?.state === "file"
     readonly property var currentList: showWallpapers ? wallpaperList.item : appList.item // Can be either ListView or PathView, so can't type properly
     property string animState: showWallpapers ? "wallpapers" : "apps"
 
@@ -123,7 +125,7 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
 
         MaterialIcon {
-            text: root.state === "wallpapers" ? "wallpaper_slideshow" : "manage_search"
+            text: root.state === "wallpapers" ? "wallpaper_slideshow" : root.fileMode ? "folder_open" : "manage_search"
             color: Colours.palette.m3onSurfaceVariant
             fontStyle: Tokens.font.icon.extraLarge
 
@@ -134,13 +136,25 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
 
             StyledText {
-                text: root.state === "wallpapers" ? Tr.tr("No wallpapers found") : Tr.tr("No results")
+                text: {
+                    if (root.state === "wallpapers")
+                        return Tr.tr("No wallpapers found");
+                    if (root.fileMode)
+                        return Files.queryText.trim().length < 2 ? Tr.tr("Search your files") : Files.busy ? Tr.tr("Searching…") : Tr.tr("No files found");
+                    return Tr.tr("No results");
+                }
                 color: Colours.palette.m3onSurfaceVariant
                 font: Tokens.font.body.builders.large.weight(Font.Medium).build()
             }
 
             StyledText {
-                text: root.state === "wallpapers" && Wallpapers.list.length === 0 ? Tr.tr("Try putting some wallpapers in %1").arg(Paths.shortenHome(Paths.wallsdir)) : Tr.tr("Try searching for something else")
+                text: {
+                    if (root.state === "wallpapers" && Wallpapers.list.length === 0)
+                        return Tr.tr("Try putting some wallpapers in %1").arg(Paths.shortenHome(Paths.wallsdir));
+                    if (root.fileMode)
+                        return Files.queryText.trim().length < 2 ? Tr.tr("Type part of a file or folder name") : Tr.tr("Try a different name");
+                    return Tr.tr("Try searching for something else");
+                }
                 color: Colours.palette.m3onSurfaceVariant
                 font: Tokens.font.body.medium
             }

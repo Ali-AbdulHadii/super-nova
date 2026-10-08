@@ -29,8 +29,8 @@ StyledListView {
     function stateForText(text: string): string {
         const prefix = GlobalConfig.launcher.actionPrefix;
         if (text.startsWith(prefix)) {
-            for (const action of ["calc", "scheme", "variant"])
-                if (text.startsWith(`${prefix}${action} `))
+            for (const action of ["calc", "scheme", "variant", "file"])
+                if (text.startsWith(`${prefix}${action} `) && (action !== "file" || GlobalConfig.launcher.fileSearch.enabled))
                     return action;
 
             return "actions";
@@ -49,6 +49,8 @@ StyledListView {
             return Schemes.query(text);
         case "variant":
             return M3Variants.query(text);
+        case "file":
+            return Files.results;
         default:
             return Apps.search(text);
         }
@@ -125,6 +127,13 @@ StyledListView {
 
             PropertyChanges {
                 root.delegate: variantItem
+            }
+        },
+        State {
+            name: "file"
+
+            PropertyChanges {
+                root.delegate: fileItem
             }
         }
     ]
@@ -285,6 +294,22 @@ StyledListView {
         VariantItem {
             list: root
         }
+    }
+
+    Component {
+        id: fileItem
+
+        FileItem {
+            list: root
+        }
+    }
+
+    // Feeds the typed name to the file search only while in file mode
+    Binding {
+        target: Files
+        property: "queryText"
+        value: root.displayText.slice(`${GlobalConfig.launcher.actionPrefix}file `.length)
+        when: root.state === "file"
     }
 
     Connections {

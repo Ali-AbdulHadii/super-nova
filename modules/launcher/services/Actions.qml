@@ -24,7 +24,8 @@ Searcher {
 
         model: {
             const enableDangerous = GlobalConfig.launcher.enableDangerousActions;
-            return GlobalConfig.launcher.actions.values.filter(a => a.enabled && (enableDangerous || !a.dangerous));
+            const fileSearch = GlobalConfig.launcher.fileSearch.enabled;
+            return GlobalConfig.launcher.actions.values.filter(a => a.enabled && (enableDangerous || !a.dangerous) && (fileSearch || a.command[0] !== "autocomplete" || a.command[1] !== "file"));
         }
 
         Action {}

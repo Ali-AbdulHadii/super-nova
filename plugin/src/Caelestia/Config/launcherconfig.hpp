@@ -37,6 +37,15 @@ class LauncherAction : public settings::ObjectNode {
 };
 CONFIG_LIST_TYPE(LauncherAction, LauncherActionList)
 
+// The ">file" mode: searches file and folder names under the home folder with fd
+class LauncherFileSearch : public settings::ObjectNode {
+    CONFIG_NODE(LauncherFileSearch, settings::ObjectNode)
+
+    CONFIG_PROPERTY(bool, enabled, true)
+    CONFIG_PROPERTY(bool, showHidden, false)
+    CONFIG_PROPERTY(int, maxResults, 40)
+};
+
 class LauncherConfig : public settings::ObjectNode {
     CONFIG_NODE(LauncherConfig, settings::ObjectNode)
 
@@ -52,6 +61,7 @@ class LauncherConfig : public settings::ObjectNode {
     CONFIG_GLOBAL_PROPERTY(QStringList, favouriteApps, {})
     CONFIG_GLOBAL_PROPERTY(QStringList, hiddenApps, {})
     CONFIG_GLOBAL_SUBOBJECT(LauncherUseFuzzy, useFuzzy)
+    CONFIG_GLOBAL_SUBOBJECT(LauncherFileSearch, fileSearch)
     CONFIG_GLOBAL_LIST(LauncherActionList, actions,
         DEFAULT_ARG({
             vmap({
@@ -59,6 +69,12 @@ class LauncherConfig : public settings::ObjectNode {
                 { u"icon"_s, u"calculate"_s },
                 { u"description"_s, mark(u"Do simple maths equations (powered by Qalc)"_s) },
                 { u"command"_s, QStringList{ u"autocomplete"_s, u"calc"_s } },
+            }),
+            vmap({
+                { u"name"_s, markCtx(u"Files"_s, u"launcher action"_s) },
+                { u"icon"_s, u"search"_s },
+                { u"description"_s, mark(u"Search files and folders in your home folder"_s) },
+                { u"command"_s, QStringList{ u"autocomplete"_s, u"file"_s } },
             }),
             vmap({
                 { u"name"_s, markCtx(u"Scheme"_s, u"launcher action"_s) },

@@ -116,6 +116,28 @@ PageBase {
             onToggled: GlobalConfig.launcher.enableDangerousActions = checked
         }
 
+        // File search (the ">file" mode)
+        SectionHeader {
+            text: Tr.tr("File search")
+        }
+
+        ToggleRow {
+            first: true
+            text: Tr.tr("File search")
+            subtext: Tr.tr("Type %1file to find files and folders in your home folder").arg(GlobalConfig.launcher.actionPrefix)
+            checked: GlobalConfig.launcher.fileSearch.enabled
+            onToggled: GlobalConfig.launcher.fileSearch.enabled = checked
+        }
+
+        ToggleRow {
+            last: true
+            text: Tr.tr("Include hidden files")
+            subtext: Tr.tr("Also search dotfiles and hidden folders")
+            disabled: !GlobalConfig.launcher.fileSearch.enabled
+            checked: GlobalConfig.launcher.fileSearch.showHidden
+            onToggled: GlobalConfig.launcher.fileSearch.showHidden = checked
+        }
+
         // Fuzzy search
         SectionHeader {
             text: Tr.tr("Fuzzy search")
