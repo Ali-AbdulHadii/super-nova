@@ -303,6 +303,9 @@ class AppearanceGlass : public settings::ObjectNode {
     CONFIG_GLOBAL_PROPERTY(bool, panels, true)
     CONFIG_GLOBAL_PROPERTY(bool, cards, false)
     CONFIG_GLOBAL_PROPERTY(bool, lock, false)
+    // Tints the glass body further when the backdrop is too close in brightness to the
+    // text on it, so panels stay readable over bright wallpapers
+    CONFIG_GLOBAL_PROPERTY(bool, autoContrast, true)
     CONFIG_SUBOBJECT(AppearanceGlassTerminals, terminals)
 };
 

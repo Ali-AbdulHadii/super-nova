@@ -173,7 +173,7 @@ StyledWindow {
             id: glassEffect
 
             GlassEffect {
-                tint: Qt.alpha(root.surfaceColour, Colours.glass.tint)
+                tint: Qt.alpha(root.surfaceColour, Colours.glass.effectiveTint)
                 highlight: Colours.glass.highlight
                 lightMode: Colours.light ? 1 : 0
                 // Glass shadows are softer than the solid surface's. Apple glass has none:
@@ -183,6 +183,8 @@ StyledWindow {
                 barGlass: Colours.glass.bar ? 1 : 0
                 panelsGlass: Colours.glass.panels ? 1 : 0
                 solidColour: root.surfaceColour
+                autoContrast: Colours.glass.autoContrast ? 1 : 0
+                textLum: Colours.getLuminance(Colours.palette.m3onSurface)
                 // This window and the wallpaper window both fill the screen from its origin,
                 // so the wallpaper lines up with the desktop pixel for pixel
                 realisticEnabled: Colours.glass.realistic && !Colours.glass.apple && root.contentItem.Config.background.wallpaperEnabled

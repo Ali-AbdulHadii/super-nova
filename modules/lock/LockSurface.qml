@@ -240,7 +240,7 @@ WlSessionLockSurface {
             // Glass: a translucent tint over the blurred background (or the lensed plate),
             // lit by the glass rim, with no shadow darkening through the body
             glassCard: true
-            color: Colours.glass.lock ? Qt.alpha(Colours.palette.m3surface, Colours.glass.tint) : Colours.palette.m3surface
+            color: Colours.glass.lock ? Qt.alpha(Colours.palette.m3surface, Colours.glass.effectiveTint) : Colours.palette.m3surface
             radius: parent.radius
             opacity: Colours.glass.lock ? 1 : (Colours.transparency.enabled ? Colours.transparency.base : 1)
 

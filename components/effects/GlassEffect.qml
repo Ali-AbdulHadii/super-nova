@@ -29,6 +29,9 @@ ShaderEffect {
     property real barGlass: 1
     property real panelsGlass: 1
     property color solidColour: "transparent"
+    // Per-pixel readability: tint harder where the backdrop is too close to the text
+    property real autoContrast
+    property real textLum
 
     readonly property WallTextures textures: wallLoader.item as WallTextures
     readonly property real realistic: textures?.ready ? 1 : 0

@@ -31,6 +31,8 @@ layout(std140, binding = 0) uniform buf {
     vec4 solidColour;   // Standard surface for parts that aren't glass; alpha is its opacity
     float barGlass;     // 1 = the bar and border are glass
     float panelsGlass;  // 1 = the panels are glass
+    float autoContrast; // 1 = tint harder where the backdrop is too close to the text
+    float textLum;      // luminance of the text that sits on this surface
 };
 
 layout(binding = 1) uniform sampler2D source;
@@ -41,6 +43,11 @@ layout(binding = 4) uniform sampler2D wallpaperBlur;
 const float kDepthRange = 64.0; // must match blob.frag
 const float kBezel = 14.0;      // light band inside the edge, px
 const float kLens = 28.0;       // lens band inside the edge, px
+
+// The same weighting ImageAnalyser and Colours.getLuminance use, so thresholds match
+float lum(vec3 c) {
+    return sqrt(dot(c * c, vec3(0.299, 0.587, 0.114)));
+}
 
 vec3 wallSample(vec2 uv, float sharpness) {
     return mix(texture(wallpaperBlur, uv).rgb, texture(wallpaper, uv).rgb, sharpness);
@@ -106,7 +113,22 @@ void main() {
         // Glass lifts saturation slightly, then the scheme tint keeps text readable
         float luma = dot(body, vec3(0.2126, 0.7152, 0.0722));
         body = clamp(mix(vec3(luma), body, 1.15), 0.0, 1.0);
-        body = mix(body, tint.rgb, tintA);
+
+        // Auto contrast, per pixel: where the wallpaper behind is too close in brightness
+        // to the text on top, mix in more tint until it isn't. Only ever raises the tint,
+        // so dark areas keep exactly the glass the user asked for.
+        float mixA = tintA;
+        if (autoContrast > 0.5) {
+            const float minGap = 0.5;
+            float bodyLum = lum(body);
+            float tLum = lum(tint.rgb);
+            float slope = tLum - bodyLum;
+            if (abs(bodyLum - textLum) < minGap && abs(slope) > 0.01) {
+                float target = tLum < textLum ? textLum - minGap : textLum + minGap;
+                mixA = clamp((target - bodyLum) / slope, tintA, 0.95);
+            }
+        }
+        body = mix(body, tint.rgb, mixA);
 
         glassCol = vec4(body, 1.0);
     } else {

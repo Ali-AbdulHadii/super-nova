@@ -305,11 +305,20 @@ PageBase {
             }
         }
 
+        ToggleRow {
+            visible: Colours.glass.enabled
+            text: Tr.tr("Auto contrast")
+            subtext: Tr.tr("Tint the glass further when the wallpaper is too bright to read on")
+            checked: GlobalConfig.appearance.glass.autoContrast
+            onToggled: GlobalConfig.appearance.glass.autoContrast = checked
+        }
+
         SliderRow {
             visible: Colours.glass.enabled
             icon: "opacity"
             label: Tr.tr("Glass tint")
-            valueLabel: Strings.percentOne(value)
+            // Auto contrast can raise the tint above what the slider is set to, so show both
+            valueLabel: Colours.glass.effectiveTint > Colours.glass.tint + 0.005 ? `${Strings.percentOne(value)} \u2192 ${Strings.percentOne(Colours.glass.effectiveTint)}` : Strings.percentOne(value)
             value: Colours.glass.tint
             onMoved: v => {
                 const tint = Math.max(0.1, Math.min(0.8, v));

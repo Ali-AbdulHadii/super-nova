@@ -158,7 +158,7 @@ Singleton {
         }
         // Glass blurs only the tinted body: the soft shadow around it stays below the cutoff.
         // Apple glass has no shadow and a nearly clear body, so its cutoff sits just above 0.
-        let ignoreAlpha = glass.drawers ? glass.tint - 0.05 : transparency.base - 0.03;
+        let ignoreAlpha = glass.drawers ? glass.effectiveTint - 0.05 : transparency.base - 0.03;
         if (glass.apple)
             ignoreAlpha = glass.refracting ? glass.pluginIgnoreAlpha : 0.01;
         const msgs = [rule.arg("blur").arg(trEnabled), rule.arg("ignore_alpha").arg(Math.max(0, ignoreAlpha))];
@@ -286,6 +286,35 @@ Singleton {
         readonly property bool drawers: bar || panels
         readonly property bool cards: panels && Tokens.glass.cards
         readonly property bool lock: enabled && Tokens.glass.lock
+        readonly property bool autoContrast: Tokens.glass.autoContrast
+        // Apple glass lightens its body and uses only a fraction of the tint alpha (glass.frag)
+        readonly property real bodyAlphaScale: apple ? (root.light ? 0.8 : 0.3) : 1
+        readonly property color bodyColour: apple ? Qt.tint(root.palette.m3surface, Qt.rgba(1, 1, 1, root.light ? 0.7 : 0.5)) : root.palette.m3surface
+
+        // The alpha the glass body actually uses. Auto contrast raises the user's tint (never
+        // lowers it) until the body sits far enough from the text on it to stay readable,
+        // which is what keeps panels legible over a bright wallpaper. Luminances are in the
+        // same space as ImageAnalyser's, and a gap of 0.5 is about 4.5:1 for white on grey.
+        readonly property real effectiveTint: {
+            if (!autoContrast || !enabled)
+                return tint;
+
+            const minGap = 0.5;
+            const textLum = root.getLuminance(root.palette.m3onSurface);
+            const bodyLum = root.getLuminance(bodyColour);
+            const backdrop = root.wallLuminance;
+            const lumFor = t => backdrop + (bodyLum - backdrop) * Math.min(1, t * bodyAlphaScale);
+
+            if (Math.abs(lumFor(tint) - textLum) >= minGap)
+                return tint;
+
+            const slope = (bodyLum - backdrop) * bodyAlphaScale;
+            if (Math.abs(slope) < 0.01)
+                return tint;
+
+            const target = bodyLum < textLum ? textLum - minGap : textLum + minGap;
+            return Math.max(tint, Math.min(0.95, (target - backdrop) / slope));
+        }
 
         // Windows whose cards and buttons may take the glass rim, as { window, kind }
         // pairs; kind is "drawers" or "lock". Settings windows never register.
