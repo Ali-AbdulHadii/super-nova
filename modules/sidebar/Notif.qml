@@ -56,6 +56,13 @@ StyledRect {
         text: " " // Use this height to prevent weird characters from changing the line height
     }
 
+    TextMetrics {
+        id: compactBodyMetrics
+
+        font: summary.font
+        text: String(root.modelData?.body ?? "").replace(/\n/g, " ")
+    }
+
     StyledText {
         id: summary
 
@@ -83,7 +90,12 @@ StyledRect {
     WrappedLoader {
         id: compactBody
 
-        shouldBeActive: !root.expanded
+        // The preview only gets whatever the summary leaves behind. A part of it is worse
+        // than none: it cuts mid-word and repeats down a group without adding anything.
+        // So show it only when the whole body fits; otherwise the summary keeps the line.
+        readonly property real room: root.width - dummySummary.implicitWidth - Tokens.spacing.small
+
+        shouldBeActive: !root.expanded && compactBodyMetrics.width <= room
         anchors.top: parent.top
         anchors.left: dummySummary.right
         anchors.right: parent.right
