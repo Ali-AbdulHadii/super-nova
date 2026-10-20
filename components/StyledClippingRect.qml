@@ -15,7 +15,11 @@ ClippingRectangle {
 
     Loader {
         anchors.fill: parent
-        active: root.glassCard && Colours.glass.cardsIn(root.Window.window)
+        // Glass light belongs to a body. A rect with a transparent fill has none, so a
+        // rim there outlines nothing -- it reads as a stray border around empty space.
+        // Tracking the alpha also fades the rim in with a fill that animates.
+        active: root.glassCard && root.color.a > 0 && Colours.glass.cardsIn(root.Window.window)
+        opacity: root.color.a
 
         sourceComponent: GlassRim {
             topLeft: root.topLeftRadius
