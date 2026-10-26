@@ -45,6 +45,49 @@ StyledRect {
         Anim {}
     }
 
+    // A wrong password or an unrecognised face shakes the field, as on macOS
+    transform: Translate {
+        id: shake
+    }
+
+    Connections {
+        function onFlashMsg(): void {
+            shakeAnim.restart();
+        }
+
+        target: root.lock.pam
+    }
+
+    SequentialAnimation {
+        id: shakeAnim
+
+        ShakeStep {
+            to: -10
+        }
+        ShakeStep {
+            to: 10
+        }
+        ShakeStep {
+            to: -7
+        }
+        ShakeStep {
+            to: 7
+        }
+        ShakeStep {
+            to: -3
+        }
+        ShakeStep {
+            to: 0
+        }
+    }
+
+    component ShakeStep: NumberAnimation {
+        target: shake
+        property: "x"
+        duration: 60
+        easing.type: Easing.InOutSine
+    }
+
     StateLayer {
         hoverEnabled: false
         cursorShape: Qt.IBeamCursor
@@ -67,7 +110,7 @@ StyledRect {
             AnimLoader {
                 anchors.centerIn: parent
                 anchors.verticalCenterOffset: sourceComponent === iconComp ? 1 : 0
-                sourceComp: root.lock.pam.passwd.active || root.lock.pam.howdy.active ? loadingComp : iconComp
+                sourceComp: root.lock.pam.passwd.active ? loadingComp : iconComp
             }
 
             Component {
@@ -76,6 +119,8 @@ StyledRect {
                 MaterialIcon {
                     animate: true
                     text: {
+                        if (root.lock.pam.howdy.active)
+                            return "face";
                         if (inputField.showPassword)
                             return "visibility";
                         if (root.lock.pam.fprint.tries >= GlobalConfig.lock.maxFprintTries) {
@@ -92,6 +137,24 @@ StyledRect {
                     color: !root.lock.pam.howdy.canAttempt && root.lock.pam.fprint.tries >= GlobalConfig.lock.maxFprintTries ? Colours.palette.m3error : Colours.palette.m3onSurfaceVariant
                     fontStyle: Tokens.font.icon.builders.medium.scale(root.centerScale).build()
                     fill: text === "face" || text === "visibility"
+
+                    // The face glyph breathes while a scan runs, in place of a spinner
+                    SequentialAnimation on opacity {
+                        running: root.lock.pam.howdy.active
+                        loops: Animation.Infinite
+                        alwaysRunToEnd: true
+
+                        NumberAnimation {
+                            to: 0.35
+                            duration: 600
+                            easing.type: Easing.InOutSine
+                        }
+                        NumberAnimation {
+                            to: 1
+                            duration: 600
+                            easing.type: Easing.InOutSine
+                        }
+                    }
 
                     StateLayer {
                         anchors.fill: undefined

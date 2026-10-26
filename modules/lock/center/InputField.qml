@@ -52,7 +52,7 @@ Item {
             if (root.pam.passwd.active)
                 return Tr.tr("Loading...");
             if (root.pam.howdy.active)
-                return Tr.tr("Scanning face...");
+                return Tr.tr("Scanning…");
             if (root.pam.state === Pam.MaxTries)
                 return Tr.tr("Max tries reached");
             return Tr.tr("Enter your password");

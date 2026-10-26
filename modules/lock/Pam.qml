@@ -28,11 +28,32 @@ Scope {
     property int state
     property string buffer
 
+    // Activity (pointer movement, non-text keys) starts a face scan, like raise to wake.
+    // Disarmed after each scan until the user has been still for a while, so a failed scan
+    // isn't retried on every mouse move, and briefly after locking, so the movement that
+    // locked the screen doesn't unlock it again
+    property bool autoScanArmed
+
     signal flashMsg
+
+    function wake(): void {
+        if (autoScanArmed && buffer.length === 0 && !passwd.active && howdy.canAttempt && !howdy.active) {
+            autoScanArmed = false;
+            autoScanRearm.interval = 10000;
+            howdy.start();
+        }
+
+        if (!autoScanArmed)
+            autoScanRearm.restart();
+    }
 
     function handleKey(event: KeyEvent): void {
         if (passwd.active)
             return;
+
+        // Non-text keys (Shift, Ctrl, arrows, Esc) wake a scan without touching the password
+        if (buffer.length === 0 && event.key !== Qt.Key_Enter && event.key !== Qt.Key_Return && event.key !== Qt.Key_Backspace && !/^[^\x00-\x1F\x7F-\x9F]+$/.test(event.text))
+            return wake();
 
         // Trigger howdy on enter while empty buffer
         if (howdy.canAttempt && !howdy.active && (event.key === Qt.Key_Enter || event.key === Qt.Key_Return) && buffer.length === 0)
@@ -112,6 +133,24 @@ Scope {
         }
     }
 
+    // Any input after a moment of stillness wakes a face scan. The compositor reports it,
+    // so it covers every screen and works while the displays are still off
+    IdleMonitor {
+        enabled: root.lock.secure
+        timeout: 1
+        respectInhibitors: false
+        onIsIdleChanged: {
+            if (!isIdle)
+                root.wake();
+        }
+    }
+
+    Timer {
+        id: autoScanRearm
+
+        onTriggered: root.autoScanArmed = true
+    }
+
     Timer {
         id: pwdStateReset
 
@@ -161,6 +200,9 @@ Scope {
                 root.buffer = "";
                 root.state = Pam.None;
                 root.lockMessage = "";
+                root.autoScanArmed = false;
+                autoScanRearm.interval = 1500;
+                autoScanRearm.restart();
             }
         }
 

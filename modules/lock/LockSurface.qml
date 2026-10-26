@@ -72,7 +72,17 @@ WlSessionLockSurface {
                 to: 0
                 type: Anim.StandardLarge
             }
+            // The card settles into the padlock, which then opens before the lock fades
+            // (as on iPhone, where the padlock opens once Face ID knows you)
             SequentialAnimation {
+                PauseAnimation {
+                    duration: Tokens.anim.durations.normal
+                }
+                PropertyAction {
+                    target: lockIcon
+                    property: "text"
+                    value: "lock_open_right"
+                }
                 PauseAnimation {
                     duration: Tokens.anim.durations.small
                 }

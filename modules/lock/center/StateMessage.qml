@@ -27,15 +27,13 @@ Item {
                 // TRANSLATORS: %1 = attempts used so far, %2 = maximum attempts allowed
                 return Tr.tr("Fingerprint not recognised (%1/%2). Please try again or use password.").arg(pam.fprint.tries).arg(GlobalConfig.lock.maxFprintTries);
             if (pam.howdy.state === Pam.Failed)
-                // TRANSLATORS: %1 = attempts used so far, %2 = maximum attempts allowed
-                return Tr.tr("Face not recognised (%1/%2). Please try again or use password.").arg(pam.howdy.tries).arg(GlobalConfig.lock.maxHowdyTries);
+                return Tr.tr("Face not recognised");
         } else {
             if (pam.fprint.state === Pam.Failed)
                 // TRANSLATORS: %1 = attempts used so far, %2 = maximum attempts allowed
                 return Tr.tr("Fingerprint not recognised (%1/%2). Please try again.").arg(pam.fprint.tries).arg(GlobalConfig.lock.maxFprintTries);
             if (pam.howdy.state === Pam.Failed)
-                // TRANSLATORS: %1 = attempts used so far, %2 = maximum attempts allowed
-                return Tr.tr("Face not recognised (%1/%2). Please try again.").arg(pam.howdy.tries).arg(GlobalConfig.lock.maxHowdyTries);
+                return Tr.tr("Face not recognised");
         }
 
         if (pam.lockMessage) // Password max tries message
@@ -46,7 +44,7 @@ Item {
             if (pam.fprint.available && pam.fprint.state !== Pam.MaxTries)
                 return Tr.tr("Incorrect password. Please try again or use fingerprint.");
             if (pam.howdy.available && pam.howdy.state !== Pam.MaxTries)
-                return Tr.tr("Incorrect password. Please try again or use face.");
+                return Tr.tr("Incorrect password");
             return Tr.tr("Incorrect password. Please try again.");
         }
 
@@ -63,7 +61,7 @@ Item {
         if (pam.fprint.state === Pam.MaxTries)
             return Tr.tr("Maximum fingerprint attempts reached. Please use password.");
         if (pam.howdy.state === Pam.MaxTries)
-            return Tr.tr("Maximum face attempts reached. Please use password.");
+            return Tr.tr("Enter your password to unlock");
 
         return "";
     }
