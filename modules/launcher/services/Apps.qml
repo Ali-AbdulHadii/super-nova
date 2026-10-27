@@ -13,9 +13,11 @@ Searcher {
 
         if (entry.runInTerminal)
             Quickshell.execDetached({
-                command: [...GlobalConfig.general.apps.terminal, `${Quickshell.shellDir}/assets/wrap_term_launch.sh`, ...entry.command],
+                command: AppScope.wrap([...GlobalConfig.general.apps.terminal, `${Quickshell.shellDir}/assets/wrap_term_launch.sh`, ...entry.command]),
                 workingDirectory: entry.workingDirectory
             });
+        else if (AppScope.available && entry.id)
+            Quickshell.execDetached(AppScope.entryCommand(entry.id));
         else
             entry.execute();
     }

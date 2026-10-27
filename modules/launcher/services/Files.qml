@@ -91,7 +91,7 @@ Singleton {
 
     function open(list: var, path: string): void {
         list.screenState.launcher = false;
-        Quickshell.execDetached(["xdg-open", path]);
+        Quickshell.execDetached(AppScope.wrap(["xdg-open", path]));
     }
 
     // Shows the item in its folder: Nautilus selects it, anything else opens the folder.
@@ -100,7 +100,7 @@ Singleton {
         if (!path)
             return;
         list.screenState.launcher = false;
-        Quickshell.execDetached(["sh", "-c", "if command -v nautilus >/dev/null; then exec nautilus --select \"$1\"; else exec xdg-open \"$(dirname \"$1\")\"; fi", "sh", path]);
+        Quickshell.execDetached(AppScope.wrap(["sh", "-c", "if command -v nautilus >/dev/null; then exec nautilus --select \"$1\"; else exec xdg-open \"$(dirname \"$1\")\"; fi", "sh", path]));
     }
 
     onQueryTextChanged: debounce.restart()
