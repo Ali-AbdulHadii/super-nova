@@ -6,7 +6,7 @@
 
 using Qt::StringLiterals::operator""_s;
 
-namespace caelestia::services {
+namespace caelestia::shell::services {
 
 namespace {
 
@@ -99,4 +99,4 @@ void Fonts::populate() {
     std::ranges::sort(m_monoFamilies, byLocale);
 }
 
-} // namespace caelestia::services
+} // namespace caelestia::shell::services

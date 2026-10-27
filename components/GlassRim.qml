@@ -2,7 +2,7 @@ import QtQuick
 import qs.services
 
 // Glass light on one rounded rectangle (glassrim.frag), used by StyledRect and
-// StyledClippingRect when they are glass cards. Light only, no body.
+// ClipRect when they are glass cards. Light only, no body.
 ShaderEffect {
     required property real topLeft
     required property real topRight

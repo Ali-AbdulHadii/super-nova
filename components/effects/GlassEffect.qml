@@ -2,7 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Effects
-import qs.components.images
+import Caelestia.Multimedia
 
 // Liquid Glass compositor, used as the layer.effect of a BlobGroup in glass mode.
 // The layer holds edge geometry from blob.frag; glass.frag lights it, and in
@@ -79,15 +79,18 @@ ShaderEffect {
         id: wallTextures
 
         required property string path
-        readonly property bool ready: wallImg.status === Image.Ready
+        readonly property bool ready: wallImg.ready
         readonly property ShaderEffectSource sharp: sharpTex
         readonly property ShaderEffectSource blurred: blurTex
 
-        CachingImage {
+        // animate: false -- Visual fades itself in by default, which would animate the
+        // texture these shaders sample. CachingImage, which this replaced, did not fade.
+        Visual {
             id: wallImg
 
             anchors.fill: parent
-            path: wallTextures.path
+            source: wallTextures.path
+            animate: false
         }
 
         ShaderEffectSource {

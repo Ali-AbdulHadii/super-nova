@@ -5,7 +5,7 @@
 #include <qobject.h>
 #include <qqmlengine.h>
 
-namespace caelestia::blobs {
+namespace caelestia::shell::blobs {
 
 class BlobShape;
 class BlobInvertedRect;
@@ -65,4 +65,4 @@ private:
     bool m_physicsUpdated = false;
 };
 
-} // namespace caelestia::blobs
+} // namespace caelestia::shell::blobs

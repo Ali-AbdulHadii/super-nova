@@ -4,7 +4,7 @@
 #include <qqmlintegration.h>
 #include <qstringlist.h>
 
-namespace caelestia::services {
+namespace caelestia::shell::services {
 
 class Fonts : public QObject {
     Q_OBJECT
@@ -34,4 +34,4 @@ private:
     QStringList m_monoFamilies;
 };
 
-} // namespace caelestia::services
+} // namespace caelestia::shell::services

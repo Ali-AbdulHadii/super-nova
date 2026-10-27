@@ -8,7 +8,7 @@
 #include "common.hpp"
 #include "enums.hpp"
 
-namespace caelestia::config {
+namespace caelestia::shell::config {
 
 using Qt::StringLiterals::operator""_s;
 using settings::vmap;
@@ -36,6 +36,7 @@ class BarWorkspaces : public settings::ObjectNode {
     CONFIG_PROPERTY(bool, activeIndicator, true)
     CONFIG_PROPERTY(bool, occupiedBg, false)
     CONFIG_PROPERTY(bool, showUnoccupied, true)
+    CONFIG_PROPERTY(bool, perMonitor, true)
     CONFIG_PROPERTY(bool, showWindows, true)
     CONFIG_PROPERTY(bool, showWindowsOnSpecialWorkspaces, true)
     CONFIG_PROPERTY(int, maxWindowIcons, 5)
@@ -62,7 +63,7 @@ class BarWorkspaces : public settings::ObjectNode {
         }))
     CONFIG_GLOBAL_LIST(IconRuleList, windowIcons,
         DEFAULT_ARG({
-            ICON_RULE_REGEX("steam(_app_(default|[0-9]+))?", "", "sports_esports"),
+            ICON_RULE_REGEX("steam(_app_(default|[0-9]+))?", "sports_esports"),
         }))
 };
 
@@ -139,4 +140,4 @@ class BarConfig : public settings::ObjectNode {
     CONFIG_PROPERTY(QStringList, excludedScreens, {})
 };
 
-} // namespace caelestia::config
+} // namespace caelestia::shell::config
